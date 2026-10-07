@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#183c2a">
+<title>Çiftlikova — Isometric Test</title>
+<style>
+:root{
+  --tile-w:96px;--tile-h:48px;
+  --panel:rgba(12,38,33,.94);--line:rgba(255,255,255,.16);
+  --gold:#ffd65c;--green:#4bc868;--red:#ff625f;--text:#fff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10291f;color:#fff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none}
+button{font:inherit}
+#app{position:fixed;inset:0;background:linear-gradient(#8bd5eb 0 28%,#81bf6c 28% 100%);overflow:hidden}
+#viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab}
+#viewport.dragging{cursor:grabbing}
+#stage{position:absolute;left:0;top:0;width:1600px;height:1050px;transform-origin:0 0;will-change:transform}
+#map{position:absolute;left:800px;top:160px}
+.tile{position:absolute;width:var(--tile-w);height:var(--tile-h);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);border:0;padding:0;cursor:pointer;filter:drop-shadow(0 3px 1px rgba(0,0,0,.15));transition:filter .12s,transform .12s}
+.tile:before{content:"";position:absolute;inset:1px;clip-path:inherit;background:rgba(255,255,255,.05);border:1px solid rgba(0,0,0,.08)}
+.tile.grass{background:linear-gradient(145deg,#78c94f,#58a93e)}
+.tile.grass:nth-child(3n){background:linear-gradient(145deg,#86d658,#5cae41)}
+.tile.road{background:linear-gradient(145deg,#d6a55d,#b77c38)}
+.tile.water{background:linear-gradient(145deg,#50c7e8,#238bc3)}
+.tile.locked{filter:saturate(.35) brightness(.72);opacity:.7}
+.tile.sel{filter:brightness(1.18) drop-shadow(0 0 7px #fff)}
+.tile.valid{background:linear-gradient(145deg,#8dea74,#39b85b)!important;filter:drop-shadow(0 0 8px #68ff8a)}
+.tile.invalid{background:linear-gradient(145deg,#ff8d80,#d84242)!important;filter:drop-shadow(0 0 8px #ff5c58)}
+.obj{position:absolute;transform:translate(-50%,-88%);transform-origin:50% 100%;pointer-events:auto;user-select:none;text-align:center;filter:drop-shadow(0 8px 5px rgba(0,0,0,.22));cursor:pointer}
+.obj .sprite{display:grid;place-items:center}
+.obj.plot{width:126px;height:104px;transform:translate(-50%,-68%)}
+.obj.plot .sprite{width:126px;height:86px;border:6px solid #9a5a24;background:repeating-linear-gradient(12deg,#7a451d 0 11px,#643618 11px 20px);clip-path:polygon(50% 0,96% 25%,50% 50%,4% 25%);position:relative}
+.obj.plot .sprite:after{content:attr(data-crop);position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:35px;letter-spacing:-7px;text-shadow:0 2px 2px #0006}
+.obj.plot.stage0 .sprite:after{content:"···";color:#c99b60;font-size:26px;letter-spacing:3px}
+.obj.plot.stage1 .sprite:after{font-size:20px;opacity:.7}
+.obj.plot.stage2 .sprite:after{font-size:27px;opacity:.84}
+.obj.plot.stage3 .sprite:after{font-size:33px}
+.obj.plot.stage4 .sprite:after{font-size:39px;filter:saturate(1.2) brightness(1.12)}
+.obj.greenhouse{width:170px;transform:translate(-50%,-88%)}
+.obj.greenhouse .sprite{width:154px;height:110px;background:linear-gradient(135deg,rgba(217,250,255,.87),rgba(94,190,170,.46));border:8px solid #b66b2d;border-radius:5px 5px 14px 14px;clip-path:polygon(50% 0,100% 30%,92% 100%,8% 100%,0 30%);position:relative}
+.obj.greenhouse .sprite:after{content:"🌿  🍅  🌿";position:absolute;left:0;right:0;bottom:18px;font-size:25px}
+.obj.greenhouse .sprite:before{content:"";position:absolute;left:50%;top:8px;bottom:7px;width:6px;background:#b66b2d;transform:translateX(-50%)}
+.obj.chicken,.obj.farmer{filter:drop-shadow(0 5px 3px rgba(0,0,0,.25))}
+.obj.chicken .sprite{font-size:54px;transform-origin:50% 100%;animation:bob 1.7s ease-in-out infinite alternate}
+.obj.chicken.flip .sprite{transform:scaleX(-1)}
+.obj.farmer .sprite{font-size:61px;animation:bob 2s ease-in-out infinite alternate}
+@keyframes bob{to{translate:0 -3px}}
+.badge{display:inline-block;margin-top:-4px;padding:3px 7px;border-radius:9px;background:rgba(7,38,31,.88);border:1px solid #ffffff2a;color:#fff;font-size:10px;font-weight:900;white-space:nowrap}
+#topbar{position:absolute;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));z-index:80;display:flex;gap:7px;align-items:center;pointer-events:none}
+.brand,.chip{pointer-events:auto;background:var(--panel);border:1px solid var(--line);box-shadow:0 7px 20px #0004;border-radius:14px}
+.brand{padding:9px 12px;font-weight:950}.brand small{display:block;color:#bfe3d8;font-size:10px;font-weight:700;margin-top:1px}
+.chip{padding:9px 11px;font-weight:900;font-size:13px}.chip b{color:var(--gold)}
+#coord{margin-left:auto}
+#toolbar{position:absolute;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:90;width:min(970px,calc(100vw - 16px));background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px;box-shadow:0 12px 32px #0006}
+.tools{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.tools::-webkit-scrollbar{display:none}
+.tool{min-width:76px;height:62px;border:1px solid #ffffff1e;border-radius:13px;background:#ffffff0c;color:#fff;font-weight:850;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tool span{font-size:24px;line-height:1}.tool.active{background:#315c49;outline:2px solid var(--gold);color:#fff}.tool.danger{background:#652e2e}
+#actionbar{display:none;margin-top:7px;gap:7px;align-items:center;border-top:1px solid #ffffff16;padding-top:7px}
+#actionbar.show{display:flex}
+#actionbar .msg{font-size:12px;line-height:1.2;color:#d5e9e3;flex:1;padding-left:4px}
+.primary,.secondary{border:0;border-radius:11px;padding:10px 15px;font-weight:950}
+.primary{background:linear-gradient(#62dd72,#2da84b);color:white}.primary:disabled{opacity:.35}
+.secondary{background:#ffffff13;color:white;border:1px solid #ffffff20}
+#zoom{position:absolute;right:max(10px,env(safe-area-inset-right));bottom:105px;z-index:88;display:flex;flex-direction:column;gap:6px}
+#zoom button{width:42px;height:42px;border:1px solid #ffffff25;border-radius:12px;background:var(--panel);color:#fff;font-weight:950;font-size:21px}
+#help{position:absolute;left:max(10px,env(safe-area-inset-left));bottom:105px;z-index:87;background:rgba(255,250,225,.94);color:#2f382d;border:2px solid #e2b84e;border-radius:13px;padding:8px 10px;max-width:255px;font-size:11px;line-height:1.25;box-shadow:0 6px 18px #0004}
+#toast{position:absolute;left:50%;top:76px;z-index:120;transform:translate(-50%,-120px);background:#082d28f2;border:1px solid #ffffff29;border-radius:13px;padding:10px 14px;font-weight:900;font-size:13px;transition:.22s;box-shadow:0 9px 25px #0006;text-align:center;max-width:80vw}
+#toast.show{transform:translate(-50%,0)}
+@media(max-width:700px){
+  :root{--tile-w:84px;--tile-h:42px}
+  .brand{font-size:13px}.brand small{display:none}.chip{font-size:11px;padding:8px}.tool{min-width:66px;height:58px}.tool span{font-size:22px}
+  #help{display:none}#zoom{bottom:96px}.obj.plot{transform:translate(-50%,-62%)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="viewport"><div id="stage"><div id="map"></div></div></div>
+
+  <div id="topbar">
+    <div class="brand">ÇİFTLİKOVA <small>Isometric Motor Testi</small></div>
+    <div class="chip">Harita <b id="sizeLabel">10×10</b></div>
+    <div class="chip" id="coord">Kare <b>—</b></div>
+  </div>
+
+  <div id="help"><b>Test hedefi:</b> eğik grid + footprint + çakışma + derinlik.<br>Haritayı sürükle. Araç seç, kareye dokun, sonra <b>Onayla</b>.</div>
+
+  <div id="zoom">
+    <button id="zin" aria-label="Yakınlaştır">+</button>
+    <button id="zout" aria-label="Uzaklaştır">−</button>
+    <button id="fit" aria-label="Sığdır">⌂</button>
+  </div>
+
+  <div id="toolbar">
+    <div class="tools">
+      <button class="tool active" data-mode="pan"><span>✋</span>Gez</button>
+      <button class="tool" data-mode="plot"><span>🌾</span>Tarla</button>
+      <button class="tool" data-mode="greenhouse"><span>🏡</span>Sera</button>
+      <button class="tool" data-mode="chicken"><span>🐔</span>Tavuk</button>
+      <button class="tool" data-mode="farmer"><span>🧑‍🌾</span>Çiftçi</button>
+      <button class="tool" data-mode="road"><span>🟫</span>Yol</button>
+      <button class="tool" data-mode="water"><span>💧</span>Su</button>
+      <button class="tool" id="cropBtn"><span>🌾</span><i>Buğday</i></button>
+      <button class="tool" id="expand"><span>➕</span>Arazi</button>
+      <button class="tool danger" id="reset"><span>↺</span>Sıfırla</button>
+    </div>
+    <div id="actionbar">
+      <div class="msg" id="actionMsg">Yer seç.</div>
+      <button class="secondary" id="cancel">İptal</button>
+      <button class="primary" id="confirm">Onayla</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+<script>
+(function(){
+"use strict";
+var TILE_W=96,TILE_H=48;
+var viewport=document.getElementById("viewport"),stage=document.getElementById("stage"),map=document.getElementById("map");
+var actionbar=document.getElementById("actionbar"),actionMsg=document.getElementById("actionMsg"),confirmBtn=document.getElementById("confirm");
+var coord=document.getElementById("coord"),toastEl=document.getElementById("toast");
+var cropBtn=document.getElementById("cropBtn"),sizeLabel=document.getElementById("sizeLabel");
+var storageKey="ciftlikova_iso_test_v1";
+var cropOrder=["wheat","carrot","corn","strawberry"];
+var cropInfo={
+  wheat:{name:"Buğday",emoji:"🌾"},carrot:{name:"Havuç",emoji:"🥕"},
+  corn:{name:"Mısır",emoji:"🌽"},strawberry:{name:"Çilek",emoji:"🍓"}
+};
+var defaults={
+  size:10,crop:"wheat",terrain:{},objects:[
+    {id:"g1",type:"greenhouse",r:1,c:5,w:3,h:2},
+    {id:"p1",type:"plot",r:5,c:2,w:2,h:2,crop:"wheat",stage:4},
+    {id:"p2",type:"plot",r:6,c:5,w:2,h:2,crop:"carrot",stage:2},
+    {id:"ch1",type:"chicken",r:3,c:3,w:1,h:1,flip:false},
+    {id:"ch2",type:"chicken",r:4,c:7,w:1,h:1,flip:true},
+    {id:"f1",type:"farmer",r:7,c:7,w:1,h:1}
+  ]
+};
+var state=loadState();
+var mode="pan",preview=null,selectedTile=null,zoom=.82,panX=0,panY=0;
+var drag={active:false,moved:false,x:0,y:0,startX:0,startY:0,pid:null};
+
+function clone(v){return JSON.parse(JSON.stringify(v))}
+function loadState(){try{var v=JSON.parse(localStorage.getItem(storageKey));if(v&&v.size&&Array.isArray(v.objects))return v}catch(e){}return clone(defaults)}
+function save(){localStorage.setItem(storageKey,JSON.stringify(state))}
+function terrainAt(r,c){return state.terrain[r+","+c]||"grass"}
+function pos(r,c){return{x:(c-r)*TILE_W/2,y:(c+r)*TILE_H/2}}
+function centerFor(r,c,w,h){
+  var a=pos(r,c),b=pos(r+h-1,c+w-1);
+  return{x:(a.x+b.x)/2,y:(a.y+b.y)/2}
+}
+function zFor(r,c,h){return 100+(r+c+h)*10}
+function footprint(type){
+  if(type==="plot")return{w:2,h:2};
+  if(type==="greenhouse")return{w:3,h:2};
+  return{w:1,h:1};
+}
+function cellsFor(r,c,w,h){var a=[];for(var y=0;y<h;y++)for(var x=0;x<w;x++)a.push([r+y,c+x]);return a}
+function isInside(r,c,w,h){return r>=0&&c>=0&&r+h<=state.size&&c+w<=state.size}
+function objectAtCell(r,c,ignore){
+  for(var i=0;i<state.objects.length;i++){
+    var o=state.objects[i];if(ignore&&o.id===ignore)continue;
+    if(r>=o.r&&r<o.r+o.h&&c>=o.c&&c<o.c+o.w)return o;
+  }return null;
+}
+function canPlace(type,r,c){
+  var fp=footprint(type);
+  if(!isInside(r,c,fp.w,fp.h))return false;
+  var cells=cellsFor(r,c,fp.w,fp.h);
+  for(var i=0;i<cells.length;i++){
+    var rr=cells[i][0],cc=cells[i][1];
+    if(terrainAt(rr,cc)==="water")return false;
+    if(objectAtCell(rr,cc))return false;
+  }
+  return true;
+}
+function tileClass(r,c){
+  var cl="tile "+terrainAt(r,c);
+  if(selectedTile&&selectedTile.r===r&&selectedTile.c===c)cl+=" sel";
+  if(preview){
+    var fp=footprint(preview.type),cs=cellsFor(preview.r,preview.c,fp.w,fp.h);
+    for(var i=0;i<cs.length;i++)if(cs[i][0]===r&&cs[i][1]===c){cl+=preview.valid?" valid":" invalid";break}
+  }
+  return cl;
+}
+function render(){
+  map.innerHTML="";
+  TILE_W=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--tile-w"))||96;
+  TILE_H=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--tile-h"))||48;
+  var frag=document.createDocumentFragment();
+  for(var r=0;r<state.size;r++){
+    for(var c=0;c<state.size;c++){
+      var p=pos(r,c),t=document.createElement("button");
+      t.className=tileClass(r,c);t.style.left=(p.x-TILE_W/2)+"px";t.style.top=(p.y-TILE_H/2)+"px";
+      t.style.zIndex=10+r+c;t.dataset.r=r;t.dataset.c=c;t.title=r+","+c;
+      t.addEventListener("click",tileClick);frag.appendChild(t);
+    }
+  }
+  var sorted=state.objects.slice().sort(function(a,b){return (a.r+a.c+a.h)-(b.r+b.c+b.h)});
+  for(var i=0;i<sorted.length;i++)frag.appendChild(renderObj(sorted[i]));
+  map.appendChild(frag);sizeLabel.textContent=state.size+"×"+state.size;
+}
+function renderObj(o){
+  var d=document.createElement("div"),p=centerFor(o.r,o.c,o.w,o.h);
+  d.className="obj "+o.type+(o.flip?" flip":"")+(o.type==="plot"?" stage"+(o.stage||0):"");
+  d.style.left=p.x+"px";d.style.top=(p.y+TILE_H*.6)+"px";d.style.zIndex=zFor(o.r,o.c,o.h);
+  d.dataset.id=o.id;
+  var sp=document.createElement("div");sp.className="sprite";
+  if(o.type==="plot"){sp.dataset.crop=(cropInfo[o.crop]||cropInfo.wheat).emoji.repeat(Math.max(1,Math.min(4,(o.stage||0)+1)));d.appendChild(sp);var b=document.createElement("span");b.className="badge";b.textContent=(cropInfo[o.crop]||cropInfo.wheat).name+" • "+stageName(o.stage||0);d.appendChild(b)}
+  if(o.type==="greenhouse"){d.appendChild(sp);var bg=document.createElement("span");bg.className="badge";bg.textContent="3×2 footprint";d.appendChild(bg)}
+  if(o.type==="chicken"){sp.textContent="🐔";d.appendChild(sp)}
+  if(o.type==="farmer"){sp.textContent="🧑‍🌾";d.appendChild(sp)}
+  d.addEventListener("click",function(e){e.stopPropagation();objectClick(o.id)});
+  return d;
+}
+function stageName(s){return["Boş","Yeni ekildi","Büyüyor","Olgunlaşıyor","Hasada hazır"][s]||"Boş"}
+function tileClick(e){
+  if(drag.moved)return;
+  var r=+e.currentTarget.dataset.r,c=+e.currentTarget.dataset.c;selectedTile={r:r,c:c};coord.innerHTML="Kare <b>"+r+","+c+"</b>";
+  if(mode==="pan"){preview=null;render();return}
+  if(mode==="road"||mode==="water"){
+    if(objectAtCell(r,c)){toast("Bu karenin üzerinde nesne var.");return}
+    state.terrain[r+","+c]=mode;save();render();return
+  }
+  var fp=footprint(mode);preview={type:mode,r:r,c:c,w:fp.w,h:fp.h,valid:canPlace(mode,r,c)};
+  actionMsg.textContent=preview.valid?(modeLabel(mode)+" için alan uygun."):"Alan dolu, su üzerinde veya sınır dışında.";
+  confirmBtn.disabled=!preview.valid;actionbar.classList.add("show");render();
+}
+function objectClick(id){
+  if(mode!=="pan")return;
+  var o=state.objects.find(function(x){return x.id===id});if(!o)return;
+  if(o.type==="plot"){
+    o.stage=((o.stage||0)+1)%5;save();render();toast((cropInfo[o.crop]||cropInfo.wheat).name+": "+stageName(o.stage));
+  }else toast(modeLabel(o.type)+" • footprint "+o.w+"×"+o.h);
+}
+function modeLabel(m){return{pan:"Gez",plot:"Tarla",greenhouse:"Sera",chicken:"Tavuk",farmer:"Çiftçi",road:"Toprak yol",water:"Su"}[m]||m}
+function setMode(m){
+  mode=m;preview=null;selectedTile=null;actionbar.classList.remove("show");
+  document.querySelectorAll(".tool[data-mode]").forEach(function(b){b.classList.toggle("active",b.dataset.mode===m)});
+  viewport.style.cursor=m==="pan"?"grab":"crosshair";render();
+}
+function confirmPlacement(){
+  if(!preview||!preview.valid)return;
+  var fp=footprint(preview.type),o={id:"o"+Date.now(),type:preview.type,r:preview.r,c:preview.c,w:fp.w,h:fp.h};
+  if(o.type==="plot"){o.crop=state.crop;o.stage=0}
+  if(o.type==="chicken")o.flip=Math.random()>.5;
+  state.objects.push(o);save();preview=null;actionbar.classList.remove("show");render();toast(modeLabel(o.type)+" yerleştirildi.");
+}
+function rotateCrop(){
+  var i=cropOrder.indexOf(state.crop);state.crop=cropOrder[(i+1)%cropOrder.length];save();
+  cropBtn.querySelector("span").textContent=cropInfo[state.crop].emoji;cropBtn.querySelector("i").textContent=cropInfo[state.crop].name;
+  toast("Ürün: "+cropInfo[state.crop].name);
+}
+function expandLand(){
+  if(state.size>=14){toast("Test sınırı 14×14.");return}
+  state.size+=2;save();render();fitStage();toast("Arazi "+state.size+"×"+state.size+" oldu.");
+}
+function resetAll(){
+  if(!confirm("Isometric test haritası sıfırlansın mı?"))return;
+  state=clone(defaults);save();setMode("pan");syncCrop();fitStage();toast("Test haritası sıfırlandı.");
+}
+function syncCrop(){cropBtn.querySelector("span").textContent=cropInfo[state.crop].emoji;cropBtn.querySelector("i").textContent=cropInfo[state.crop].name}
+function toast(msg){toastEl.textContent=msg;toastEl.classList.add("show");clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove("show")},1800)}
+function applyCamera(){stage.style.transform="translate("+panX+"px,"+panY+"px) scale("+zoom+")"}
+function fitStage(){
+  var vw=viewport.clientWidth,vh=viewport.clientHeight;
+  var mapW=state.size*TILE_W, mapH=state.size*TILE_H;
+  zoom=Math.max(.42,Math.min(1.15,Math.min((vw-80)/(mapW+440),(vh-170)/(mapH+420))*1.18));
+  panX=vw/2-800*zoom;panY=Math.max(65,vh*.12-160*zoom);applyCamera();
+}
+function setZoom(v,focusX,focusY){
+  var old=zoom;zoom=Math.max(.38,Math.min(1.6,v));
+  focusX=focusX==null?viewport.clientWidth/2:focusX;focusY=focusY==null?viewport.clientHeight/2:focusY;
+  panX=focusX-(focusX-panX)*(zoom/old);panY=focusY-(focusY-panY)*(zoom/old);applyCamera();
+}
+viewport.addEventListener("pointerdown",function(e){
+  if(mode!=="pan")return;drag.active=true;drag.moved=false;drag.x=e.clientX;drag.y=e.clientY;drag.startX=panX;drag.startY=panY;drag.pid=e.pointerId;
+  viewport.setPointerCapture(e.pointerId);viewport.classList.add("dragging");
+});
+viewport.addEventListener("pointermove",function(e){
+  if(!drag.active||e.pointerId!==drag.pid)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(Math.abs(dx)+Math.abs(dy)>5)drag.moved=true;panX=drag.startX+dx;panY=drag.startY+dy;applyCamera();
+});
+function endDrag(e){if(!drag.active)return;drag.active=false;viewport.classList.remove("dragging");setTimeout(function(){drag.moved=false},0)}
+viewport.addEventListener("pointerup",endDrag);viewport.addEventListener("pointercancel",endDrag);
+viewport.addEventListener("wheel",function(e){e.preventDefault();setZoom(zoom*(e.deltaY>0?.9:1.1),e.clientX,e.clientY)},{passive:false});
+
+document.querySelectorAll(".tool[data-mode]").forEach(function(b){b.addEventListener("click",function(){setMode(b.dataset.mode)})});
+document.getElementById("confirm").addEventListener("click",confirmPlacement);
+document.getElementById("cancel").addEventListener("click",function(){preview=null;actionbar.classList.remove("show");render()});
+cropBtn.addEventListener("click",rotateCrop);
+document.getElementById("expand").addEventListener("click",expandLand);
+document.getElementById("reset").addEventListener("click",resetAll);
+document.getElementById("zin").addEventListener("click",function(){setZoom(zoom*1.15)});
+document.getElementById("zout").addEventListener("click",function(){setZoom(zoom*.87)});
+document.getElementById("fit").addEventListener("click",fitStage);
+window.addEventListener("resize",function(){setTimeout(fitStage,80)});
+
+syncCrop();render();setTimeout(fitStage,50);
+toast("İlk isometric motor ayağa kalktı.");
+})();
+</script>
+</body>
+</html>
