@@ -25,7 +25,7 @@
 .zoomTools{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);z-index:50;display:flex;gap:7px}.zoomTools button{width:42px;height:42px;border:1px solid #ffffff22;border-radius:12px;background:#062c2be8;color:white;font-size:21px;font-weight:900;box-shadow:0 5px 13px #0006}.toast{position:absolute;z-index:100;left:50%;top:14px;transform:translate(-50%,-90px);background:#082c2cf2;border:1px solid #ffffff28;border-radius:14px;padding:11px 15px;font-weight:900;box-shadow:0 9px 24px #0007;transition:.23s;max-width:80vw;text-align:center}.toast.show{transform:translate(-50%,0)}
 .modalBack{position:fixed;z-index:200;inset:0;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}.modalBack.open{display:flex}.modal{width:min(560px,96vw);max-height:82vh;overflow:auto;background:linear-gradient(180deg,#0b4947,#062f31);border:1px solid #ffffff29;border-radius:22px;box-shadow:0 24px 70px #000b;padding:18px}.modalHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.modal h2{margin:0 0 4px;font-size:22px}.modal p{margin:0 0 14px;color:var(--muted);font-size:14px}.close{border:0;background:#ffffff15;color:#fff;width:38px;height:38px;border-radius:11px;font-size:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.choice{border:1px solid #ffffff20;border-radius:15px;background:#ffffff0b;color:#fff;padding:13px 9px;cursor:pointer;text-align:center}.choice .ci{display:block;font-size:37px;margin-bottom:4px}.choice b{display:block}.choice small{color:#c3d6d3}.choice:disabled{opacity:.42}.wideBtn{width:100%;border:0;border-radius:12px;background:linear-gradient(#ffd861,#eeb52f);color:#253018;font-weight:1000;padding:12px 14px;margin-top:10px}.inventory{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.inv{background:#ffffff0b;border:1px solid #ffffff15;border-radius:12px;padding:10px;text-align:center}.inv .ii{font-size:29px}.inv b{display:block;font-size:19px}.subtle{font-size:12px;color:#bad0cc}.timerFloating{position:absolute;z-index:23;background:rgba(248,246,230,.97);color:#18231c;border-radius:13px;padding:7px 12px;font-weight:900;border:2px solid #e1be52;box-shadow:0 6px 15px #0005;display:none}.timerFloating.show{display:block}.timerFloating small{display:block;color:#444;font-weight:700;text-align:center}
 .rotate{display:none;position:fixed;z-index:500;inset:0;background:#061f1b;color:#fff;align-items:center;justify-content:center;text-align:center;padding:30px}.rotate .box{max-width:330px}.rotate .phone{font-size:60px;animation:rot 1.6s ease-in-out infinite alternate}@keyframes rot{to{transform:rotate(90deg)}}
-@media(max-width:800px) and (orientation:portrait){.rotate{display:flex}}
+@media(max-width:800px) and (orientation:portrait){.rotate{display:none}}
 </style>
 </head>
 <body>
@@ -140,9 +140,20 @@ $('hsField0').onclick=()=>fieldAction(0);$('hsField1').onclick=()=>fieldAction(1
 document.querySelectorAll('.menuBtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.menuBtn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');const m=b.dataset.menu;if(m==='field')fieldsModal();if(m==='animals')coop();if(m==='production')mill();if(m==='storage')storageModal();if(m==='vehicles')toast('🚚 Araç filosu bir sonraki aşamada');if(m==='buildings')toast('🏠 Bina geliştirme yakında');if(m==='land')landModal();if(m==='decor')toast('🌳 Süsleme sistemi yakında')});
 // pan / zoom stage
 const vp=$('stageViewport'),stage=$('stage');let scale=1,tx=0,ty=0,drag=false,lx=0,ly=0;
-function fit(){const w=innerWidth,h=innerHeight;const phone=Math.min(w,h)<500||w<950;const pad=phone?.55:.82;scale=Math.min(w/1672,h/941)*pad;scale=Math.max(.12,Math.min(1.15,scale));tx=(w-1672*scale)/2;ty=(h-941*scale)/2;apply()}
+const MIN_SCALE=.24,MAX_SCALE=1.2;
+function fit(){
+  const w=vp.clientWidth||innerWidth,h=vp.clientHeight||innerHeight;
+  scale=Math.min(w/1672,h/941)*.96;
+  scale=Math.max(MIN_SCALE,Math.min(1,scale));
+  tx=(w-1672*scale)/2;ty=(h-941*scale)/2;apply()
+}
 function apply(){stage.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`}
-function zoom(d){const ns=Math.max(.12,Math.min(1.15,scale+d));const cx=innerWidth/2,cy=innerHeight/2;const wx=(cx-tx)/scale,wy=(cy-ty)/scale;scale=ns;tx=cx-wx*scale;ty=cy-wy*scale;apply()}
+function zoom(d){
+  const w=vp.clientWidth||innerWidth,h=vp.clientHeight||innerHeight;
+  const ns=Math.max(MIN_SCALE,Math.min(MAX_SCALE,scale+d));
+  const cx=w/2,cy=h/2,wx=(cx-tx)/scale,wy=(cy-ty)/scale;
+  scale=ns;tx=cx-wx*scale;ty=cy-wy*scale;apply()
+}
 $('zoomIn').onclick=()=>zoom(.07);$('zoomOut').onclick=()=>zoom(-.07);$('center').onclick=fit;
 const pts=new Map();let pinchDist=0;
 vp.addEventListener('pointerdown',e=>{if(e.target.closest('.hotspot,.accept,.menuBtn,.merchant,.questPanel,.orderPanel'))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});vp.setPointerCapture(e.pointerId);if(pts.size===1){drag=true;lx=e.clientX;ly=e.clientY;vp.classList.add('dragging')}else if(pts.size===2){drag=false;vp.classList.remove('dragging');const a=[...pts.values()];pinchDist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}});
