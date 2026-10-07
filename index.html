@@ -235,11 +235,14 @@ const ACHIEVEMENTS=[
   {id:'l6',name:'Büyüyen Çiftlik',desc:'Seviye 6 ol',reward:140,test:s=>level(s)>=6}
 ];
 const UNLOCKS=[
-  {l:2,t:'🥕 Havuç + Un'},
-  {l:3,t:'🌽 Mısır + Ekmek'},
+  {l:2,t:'🥕 Havuç + Un + Depo kapasitesi'},
+  {l:3,t:'🌽 Mısır + Ekmek + 2. üretim sırası'},
   {l:4,t:'🍓 Çilek + İnek + Reçel'},
-  {l:5,t:'🍅 Domates + Peynir'},
-  {l:6,t:'🌻 Ayçiçeği + Koyun + Kumaş'}
+  {l:5,t:'🍅 Domates + Peynir + 3. üretim sırası'},
+  {l:6,t:'🌻 Ayçiçeği + Koyun + Kumaş'},
+  {l:7,t:'⚙️ 4. otomatik üretim sırası'},
+  {l:9,t:'⚙️ 5. otomatik üretim sırası'},
+  {l:11,t:'⚙️ 6. otomatik üretim sırası'}
 ];
 function fresh(){return {
   version:7,coins:100,xp:0,sel:'wheat',
@@ -290,7 +293,17 @@ function crop(id){return CROPS.find(c=>c.id===id)}
 function itemValue(k){return VALUES[k]||10}
 function weather(){return WEATHER.find(w=>w.id===S.weather.id)||WEATHER[0]}
 function inventoryUsed(){return Object.values(S.inv).reduce((a,b)=>a+(Number(b)||0),0)}
-function storageCap(){return 36+(S.upgrades.silo-1)*18}
+function levelStorageBonus(){return Math.max(0,level()-1)*6}
+function storageCap(){return 36+levelStorageBonus()+(S.upgrades.silo-1)*18}
+function nextSiloRequiredLevel(){return Math.max(2,S.upgrades.silo*2)}
+function nextSiloCost(){return 150*S.upgrades.silo}
+function autoProductionSlots(){return Math.min(6,1+Math.floor((level()-1)/2))}
+function productionSlots(){return Math.min(6,autoProductionSlots()+Math.max(0,S.upgrades.factorySlots-1))}
+function productionSpeedBonus(){return Math.min(40,(level()-1)*3+Math.max(0,S.upgrades.factorySlots-1)*5)}
+function productionMs(r){return Math.max(3000,Math.round(r.time*1000*(1-productionSpeedBonus()/100)))}
+function nextAutoProductionLevel(){const a=autoProductionSlots();return a>=6?null:a*2+1}
+function nextFactoryRequiredLevel(){return [4,7,10][S.upgrades.factorySlots-1]||Infinity}
+function nextFactoryCost(){return [220,420,700][S.upgrades.factorySlots-1]||0}
 function canStore(q=1){return inventoryUsed()+q<=storageCap()}
 function syncLocks(){S.plots.forEach((p,i)=>p.lock=!plotUnlocked(i))}
 const LAND={east:{level:3,cost:350,label:'Doğu Arazisi'},south:{level:5,cost:650,label:'Güney Arazisi'}};
@@ -329,8 +342,8 @@ function harvestAll(){
   if(!n)return toast(blocked?'Depo dolu. Önce yer aç.':'Hazır ürün yok.');S.xp+=xp;syncLocks();save();render();haptic();toast(n+' ürün toplandı'+(blocked?' • '+blocked+' bekliyor':''))
 }
 function startProduction(key){
-  const r=RECIPES[key];if(!r||level()<r.level)return toast('Bu tarif henüz kilitli.');if(S.production.queue.length>=S.upgrades.factorySlots)return toast('Üretim sıraları dolu.');if(!consume(r.req))return toast('Malzeme eksik: '+reqText(r.req));
-  S.production.queue.push({id:Date.now()+Math.random(),recipe:key,readyAt:Date.now()+r.time*1000});save();render();haptic();toast(r.name+' üretime alındı')
+  const r=RECIPES[key];if(!r||level()<r.level)return toast('Bu tarif henüz kilitli.');if(S.production.queue.length>=productionSlots())return toast('Üretim sıraları dolu.');if(!consume(r.req))return toast('Malzeme eksik: '+reqText(r.req));
+  S.production.queue.push({id:Date.now()+Math.random(),recipe:key,readyAt:Date.now()+productionMs(r)});save();render();haptic();toast(r.name+' üretime alındı')
 }
 function collectProduction(id){
   const j=S.production.queue.find(x=>x.id===id);if(!j||Date.now()<j.readyAt)return;const r=RECIPES[j.recipe];if(!canStore(r.qty))return toast('Depoda yer yok.');
@@ -361,8 +374,8 @@ function deliver(id){
   const o=S.orders.find(x=>x.id===id);if(!o)return;if(!consume(o.wants))return toast('Sipariş ürünleri eksik.');S.coins+=o.reward;S.xp+=10;S.rep+=2;S.stats.delivered++;S.counters.deliver++;Object.assign(o,makeOrder(id));save();render();haptic();toast('Kamyon çıktı! +'+o.reward+' 🪙')
 }
 function sellItem(k){if((S.inv[k]||0)<1)return toast('Satılacak ürün yok.');S.inv[k]--;const price=Math.max(1,Math.round(itemValue(k)*.56));S.coins+=price;S.stats.sold++;S.counters.sell++;save();render();toast(ITEMS[k][1]+' satıldı +'+price+' 🪙')}
-function upgradeSilo(){const cost=150*S.upgrades.silo;if(S.coins<cost)return toast(cost+' 🪙 gerekli.');S.coins-=cost;S.upgrades.silo++;save();render();toast('Depo kapasitesi +18')}
-function upgradeFactory(){if(S.upgrades.factorySlots>=3)return toast('Üretim alanı maksimumda.');const cost=S.upgrades.factorySlots===1?220:380;if(level()<4)return toast('Seviye 4 gerekli.');if(S.coins<cost)return toast(cost+' 🪙 gerekli.');S.coins-=cost;S.upgrades.factorySlots++;save();render();toast('Yeni üretim sırası açıldı')}
+function upgradeSilo(){const req=nextSiloRequiredLevel(),cost=nextSiloCost();if(level()<req)return toast('Depo yükseltmesi için Seviye '+req+' gerekli.');if(S.coins<cost)return toast(cost+' 🪙 gerekli.');S.coins-=cost;S.upgrades.silo++;save();render();toast('Depo kapasitesi +18 • toplam '+storageCap())}
+function upgradeFactory(){if(S.upgrades.factorySlots>=4)return toast('Atölye geliştirmesi maksimumda.');const req=nextFactoryRequiredLevel(),cost=nextFactoryCost();if(level()<req)return toast('Atölye geliştirmesi için Seviye '+req+' gerekli.');if(S.coins<cost)return toast(cost+' 🪙 gerekli.');S.coins-=cost;S.upgrades.factorySlots++;save();render();toast('Atölye güçlendi • '+productionSlots()+' sıra • hız +%'+productionSpeedBonus())}
 function upgradeTrade(){if(S.upgrades.trade>=2)return toast('Ticaret anlaşması maksimumda.');const cost=S.upgrades.trade===0?250:420;if(level()<5)return toast('Seviye 5 gerekli.');if(S.coins<cost)return toast(cost+' 🪙 gerekli.');S.coins-=cost;S.upgrades.trade++;S.orders=S.orders.map(o=>makeOrder(o.id));save();render();toast('Sipariş ödülleri arttı')}
 function claimDaily(){if(S.dailyClaim===todayKey())return toast('Bugünkü hediye alındı.');const reward=60+level()*10;S.coins+=reward;S.dailyClaim=todayKey();save();render();haptic();toast('Günlük hediye +'+reward+' 🪙')}
 function claimAchievement(id){const a=ACHIEVEMENTS.find(x=>x.id===id);if(!a||S.claimedAchievements[id]||!a.test(S))return;S.claimedAchievements[id]=true;S.coins+=a.reward;S.xp+=5;save();render();haptic();toast(a.name+' +'+a.reward+' 🪙')}
@@ -398,17 +411,17 @@ function animalCard(type,emoji,name,desc,buyLabel){
   return '<div class="card"><div style="font-size:34px">'+emoji+'</div><h4>'+name+' <span class="tag">x'+a.owned+'</span></h4><div class="sub">'+desc+'</div>'+action+extra+'</div>'
 }
 function renderProduction(body){
-  const q=document.createElement('div');q.innerHTML='<div class="sectionRow"><b>Üretim sırası</b><span class="tag">'+S.production.queue.length+'/'+S.upgrades.factorySlots+'</span></div>';const jobs=document.createElement('div');jobs.className='queue';
+  const q=document.createElement('div');const nextAuto=nextAutoProductionLevel();q.innerHTML='<div class="sectionRow"><div><b>Üretim sırası</b><div class="sub">⚡ Hız bonusu +%'+productionSpeedBonus()+(nextAuto?' • Sonraki otomatik sıra: Sv.'+nextAuto:' • Otomatik sıra maksimum')+'</div></div><span class="tag">'+S.production.queue.length+'/'+productionSlots()+'</span></div>';const jobs=document.createElement('div');jobs.className='queue';
   if(!S.production.queue.length)jobs.innerHTML='<div class="emptyState">Üretim sırası boş.</div>';
   S.production.queue.forEach(j=>{const r=RECIPES[j.recipe],ready=Date.now()>=j.readyAt,d=document.createElement('div');d.className='queueJob'+(ready?' readyJob':'');d.innerHTML='<div><b>'+r.emoji+' '+r.name+'</b><div class="sub">'+(ready?'Hazır ✅':Math.ceil((j.readyAt-Date.now())/1000)+' sn kaldı')+'</div></div><button class="btn" '+(ready?'':'disabled')+' onclick="collectProduction('+j.id+')">Topla</button>';jobs.appendChild(d)});q.appendChild(jobs);body.appendChild(q);
-  const cards=document.createElement('div');cards.className='cards';Object.entries(RECIPES).forEach(([k,r])=>{const locked=level()<r.level,d=document.createElement('div');d.className='card';d.innerHTML='<div class="recipe"><div class="lhs"><h4>'+r.emoji+' '+r.name+'</h4><div class="sub">'+reqText(r.req)+' → '+r.qty+' '+ITEMS[r.out][1]+' • '+r.time+' sn</div></div><button class="btn" '+(locked||S.production.queue.length>=S.upgrades.factorySlots?'disabled':'')+' onclick="startProduction(\''+k+'\')">'+(locked?'🔒 Sv.'+r.level:'Üret')+'</button></div>';cards.appendChild(d)});body.appendChild(cards)
+  const cards=document.createElement('div');cards.className='cards';Object.entries(RECIPES).forEach(([k,r])=>{const locked=level()<r.level,d=document.createElement('div');d.className='card';d.innerHTML='<div class="recipe"><div class="lhs"><h4>'+r.emoji+' '+r.name+'</h4><div class="sub">'+reqText(r.req)+' → '+r.qty+' '+ITEMS[r.out][1]+' • '+Math.ceil(productionMs(r)/1000)+' sn</div></div><button class="btn" '+(locked||S.production.queue.length>=productionSlots()?'disabled':'')+' onclick="startProduction(\''+k+'\')">'+(locked?'🔒 Sv.'+r.level:'Üret')+'</button></div>';cards.appendChild(d)});body.appendChild(cards)
 }
 function renderFarm(body){
-  const daily=60+level()*10,claimed=S.dailyClaim===todayKey();body.innerHTML='<div class="statusGrid"><div class="statusCard"><span>🏅 İtibar</span><b>'+S.rep+'</b><small>'+repTitle()+'</small></div><div class="statusCard"><span>🎒 Depo</span><b>'+inventoryUsed()+'/'+storageCap()+'</b><small>Seviye '+S.upgrades.silo+'</small></div><div class="statusCard"><span>⚙️ Üretim</span><b>'+S.upgrades.factorySlots+' sıra</b><small>Atölye kapasitesi</small></div><div class="statusCard"><span>🗺️ Arazi</span><b>'+(1+(S.land.east?1:0)+(S.land.south?1:0))+'/3</b><small>Genişleme ilerlemesi</small></div></div>'+
+  const daily=60+level()*10,claimed=S.dailyClaim===todayKey();body.innerHTML='<div class="statusGrid"><div class="statusCard"><span>🏅 İtibar</span><b>'+S.rep+'</b><small>'+repTitle()+'</small></div><div class="statusCard"><span>🎒 Depo</span><b>'+inventoryUsed()+'/'+storageCap()+'</b><small>Seviye bonusu +'+levelStorageBonus()+' • Depo kademe '+S.upgrades.silo+'</small></div><div class="statusCard"><span>⚙️ Üretim</span><b>'+productionSlots()+' sıra</b><small>Hız +%'+productionSpeedBonus()+' • Atölye kademe '+S.upgrades.factorySlots+'</small></div><div class="statusCard"><span>🗺️ Arazi</span><b>'+(1+(S.land.east?1:0)+(S.land.south?1:0))+'/3</b><small>Genişleme ilerlemesi</small></div></div>'+
   '<div class="card dailyCard"><div><h4>🎁 Günlük Çiftlik Hediyesi</h4><div class="sub">Bugün '+daily+' 🪙</div></div><button class="btn" '+(claimed?'disabled':'')+' onclick="claimDaily()">'+(claimed?'Alındı ✅':'Hediyeyi Al')+'</button></div>'+
   '<h4 class="sectionLabel">Çiftliği Geliştir</h4><div class="cards">'+
-  '<div class="card"><h4>🏚️ Depoyu Büyüt</h4><div class="sub">Kapasite +18. Bir sonraki: '+(150*S.upgrades.silo)+' 🪙</div><button class="btn" onclick="upgradeSilo()">Yükselt</button></div>'+
-  '<div class="card"><h4>⚙️ Atölye Sırası</h4><div class="sub">Aynı anda daha fazla üretim. '+S.upgrades.factorySlots+'/3</div><button class="btn" '+(S.upgrades.factorySlots>=3?'disabled':'')+' onclick="upgradeFactory()">'+(S.upgrades.factorySlots>=3?'Maksimum':(S.upgrades.factorySlots===1?'220':'380')+' 🪙')+'</button></div>'+
+  '<div class="card"><h4>🏚️ Depoyu Büyüt</h4><div class="sub">Her seviye otomatik +6 kapasite. Manuel yükseltme +18. Sonraki: Sv.'+nextSiloRequiredLevel()+' • '+nextSiloCost()+' 🪙</div><button class="btn" '+(level()<nextSiloRequiredLevel()?'disabled':'')+' onclick="upgradeSilo()">'+(level()<nextSiloRequiredLevel()?'🔒 Sv.'+nextSiloRequiredLevel():nextSiloCost()+' 🪙 • +18')+'</button></div>'+
+  '<div class="card"><h4>⚙️ Atölyeyi Güçlendir</h4><div class="sub">Sv.3/5/7/9/11 ile otomatik üretim sırası açılır. Yükseltme +1 bonus sıra ve +%5 hız. Kademe '+S.upgrades.factorySlots+'/4</div><button class="btn" '+(S.upgrades.factorySlots>=4||level()<nextFactoryRequiredLevel()?'disabled':'')+' onclick="upgradeFactory()">'+(S.upgrades.factorySlots>=4?'Maksimum':level()<nextFactoryRequiredLevel()?'🔒 Sv.'+nextFactoryRequiredLevel():nextFactoryCost()+' 🪙')+'</button></div>'+
   '<div class="card"><h4>🤝 Ticaret Anlaşması</h4><div class="sub">Sipariş ödüllerine +%10. '+S.upgrades.trade+'/2</div><button class="btn" '+(S.upgrades.trade>=2?'disabled':'')+' onclick="upgradeTrade()">'+(S.upgrades.trade>=2?'Maksimum':(S.upgrades.trade===0?'250':'420')+' 🪙')+'</button></div></div>'+
   '<h4 class="sectionLabel">Başarılar</h4><div id="achievements" class="achievements"></div>';
   const aw=body.querySelector('#achievements');ACHIEVEMENTS.forEach(a=>{const ok=a.test(S),claimed=!!S.claimedAchievements[a.id],d=document.createElement('div');d.className='achievement'+(claimed?' claimed':'');d.innerHTML='<div><b>'+a.name+'</b><div class="sub">'+a.desc+' • '+a.reward+' 🪙</div></div><button class="btn" '+(!ok||claimed?'disabled':'')+' onclick="claimAchievement(\''+a.id+'\')">'+(claimed?'Alındı ✅':ok?'Ödülü Al':'Devam')+'</button>';aw.appendChild(d)})
