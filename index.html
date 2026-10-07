@@ -140,11 +140,15 @@ $('hsField0').onclick=()=>fieldAction(0);$('hsField1').onclick=()=>fieldAction(1
 document.querySelectorAll('.menuBtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.menuBtn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');const m=b.dataset.menu;if(m==='field')fieldsModal();if(m==='animals')coop();if(m==='production')mill();if(m==='storage')storageModal();if(m==='vehicles')toast('🚚 Araç filosu bir sonraki aşamada');if(m==='buildings')toast('🏠 Bina geliştirme yakında');if(m==='land')landModal();if(m==='decor')toast('🌳 Süsleme sistemi yakında')});
 // pan / zoom stage
 const vp=$('stageViewport'),stage=$('stage');let scale=1,tx=0,ty=0,drag=false,lx=0,ly=0;
-function fit(){const w=innerWidth,h=innerHeight;scale=Math.min(w/1672,h/941)*.92;tx=(w-1672*scale)/2;ty=(h-941*scale)/2;apply()}
+function fit(){const w=innerWidth,h=innerHeight;const phone=Math.min(w,h)<500||w<950;const pad=phone?.72:.90;scale=Math.min(w/1672,h/941)*pad;scale=Math.max(.20,Math.min(1.15,scale));tx=(w-1672*scale)/2;ty=(h-941*scale)/2;apply()}
 function apply(){stage.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`}
-function zoom(d){const ns=Math.max(.25,Math.min(1.15,scale+d));const cx=innerWidth/2,cy=innerHeight/2;const wx=(cx-tx)/scale,wy=(cy-ty)/scale;scale=ns;tx=cx-wx*scale;ty=cy-wy*scale;apply()}
+function zoom(d){const ns=Math.max(.20,Math.min(1.15,scale+d));const cx=innerWidth/2,cy=innerHeight/2;const wx=(cx-tx)/scale,wy=(cy-ty)/scale;scale=ns;tx=cx-wx*scale;ty=cy-wy*scale;apply()}
 $('zoomIn').onclick=()=>zoom(.1);$('zoomOut').onclick=()=>zoom(-.1);$('center').onclick=fit;
-vp.addEventListener('pointerdown',e=>{if(e.target.closest('.hotspot,.accept,.menuBtn,.merchant,.questPanel,.orderPanel'))return;drag=true;lx=e.clientX;ly=e.clientY;vp.classList.add('dragging');vp.setPointerCapture(e.pointerId)});vp.addEventListener('pointermove',e=>{if(!drag)return;tx+=e.clientX-lx;ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;apply()});vp.addEventListener('pointerup',()=>{drag=false;vp.classList.remove('dragging')});vp.addEventListener('pointercancel',()=>{drag=false;vp.classList.remove('dragging')});
+const pts=new Map();let pinchDist=0;
+vp.addEventListener('pointerdown',e=>{if(e.target.closest('.hotspot,.accept,.menuBtn,.merchant,.questPanel,.orderPanel'))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});vp.setPointerCapture(e.pointerId);if(pts.size===1){drag=true;lx=e.clientX;ly=e.clientY;vp.classList.add('dragging')}else if(pts.size===2){drag=false;vp.classList.remove('dragging');const a=[...pts.values()];pinchDist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}});
+vp.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2){const a=[...pts.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);if(pinchDist)zoom((d-pinchDist)/650);pinchDist=d;return}if(!drag)return;tx+=e.clientX-lx;ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;apply()});
+function endPtr(e){pts.delete(e.pointerId);pinchDist=0;drag=false;vp.classList.remove('dragging')}
+vp.addEventListener('pointerup',endPtr);vp.addEventListener('pointercancel',endPtr);
 addEventListener('resize',fit);fit();render();setInterval(tick,500);setTimeout(()=>toast('🌾 Tarlaya dokun ve oyunu başlat!'),700);
 })();
 </script>
