@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#7fbd5d" />
-<title>Çiftlikova 5.0</title>
+<title>Çiftlikova 6.1</title>
 <style>
 :root{
   --paper:#fff8ea;--paper2:#f6eddc;--ink:#233226;--muted:#71806f;
@@ -57,7 +57,60 @@ button:disabled{cursor:not-allowed}
 .weatherPill{max-width:118px;overflow:hidden;text-overflow:ellipsis}.weatherLayer{position:absolute;inset:0;z-index:20;pointer-events:none;opacity:0}.weatherLayer.rain{opacity:.42;background:repeating-linear-gradient(105deg,transparent 0 14px,rgba(255,255,255,.62) 15px 17px,transparent 18px 29px);background-size:60px 90px;animation:rainMove .7s linear infinite}@keyframes rainMove{to{background-position:28px 90px}}.world.rainy .sun{opacity:.34}.world.rainy{filter:saturate(.93)}.world.breezy .cloud{animation:cloudDrift 8s ease-in-out infinite alternate}@keyframes cloudDrift{to{transform:translateX(34px)}}
 .sectionRow{display:flex;justify-content:space-between;align-items:center;margin:2px 0 8px}.tag{display:inline-flex;align-items:center;background:#eef5e7;border:1px solid #d8e7ca;border-radius:999px;padding:2px 7px;font-size:10px;font-weight:900}.queue{display:grid;gap:7px;margin-bottom:12px}.queueJob{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:15px;padding:9px}.queueJob.readyJob{outline:3px solid #cfe8aa}.emptyState{padding:12px;border:1px dashed #d7c8ad;border-radius:14px;text-align:center;color:var(--muted);font-size:12px}.weatherNote{background:#eef7e8;border:1px solid #d7e8ca;border-radius:14px;padding:9px 10px;font-size:11px;font-weight:800;margin-bottom:9px}.statusGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.statusCard{display:grid;gap:3px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center}.statusCard span{font-size:11px;color:var(--muted);font-weight:800}.statusCard b{font-size:16px}.statusCard small{font-size:9px;color:var(--muted)}.dailyCard{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.sectionLabel{margin:13px 2px 8px;font-size:13px}.achievements{display:grid;gap:7px}.achievement{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:15px;padding:9px}.achievement.claimed{opacity:.68;background:#f2f6ed}.capacity{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:9px}.capacity>div:first-child{display:flex;justify-content:space-between;font-size:12px}.capacityBar{height:8px;background:#eee5d5;border-radius:999px;overflow:hidden;margin-top:7px}.capacityBar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#b1d979)}
 @media(max-width:420px){.world{min-height:700px}.fieldZone{width:66%;left:2%;}.pasture{width:29%;right:1%}.seedMini{min-width:67px}.toolbar{width:98%;gap:4px;padding:5px}.tool{font-size:9px}.quickCard{left:2%;right:2%}.inv{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.statusGrid{grid-template-columns:1fr 1fr}.statusCard:last-child{grid-column:1/-1}.weatherPill{display:none}.achievement{align-items:flex-start}.dailyCard{align-items:flex-start}.hud{align-items:flex-start}.stats{max-width:72%}}</style>
+@media(max-width:520px){.statusGrid{grid-template-columns:1fr 1fr}.statusCard:last-child{grid-column:1/-1}.weatherPill{display:none}.achievement{align-items:flex-start}.dailyCard{align-items:flex-start}.hud{align-items:flex-start}.stats{max-width:72%}}
+/* === v6.1 CLEAN FARM UI + EXPANDABLE MAP === */
+:root{--panel:#fffdf7;--panel2:#f6f0e5;--accent:#4f8f45;--accent2:#78b95f;--mapedge:#568d48}
+html,body{background:linear-gradient(180deg,#dcefcf 0,#c8e5b6 48%,#b9d99f 100%)}
+#app{max-width:none;padding:8px 0 104px}
+.hud{width:min(96%,980px);margin:0 auto;top:6px;border-radius:18px;padding:8px 10px;box-shadow:0 8px 24px rgba(35,74,31,.14)}
+.brand{font-size:16px}.mark{width:34px;height:34px;border-radius:11px}
+.stats{gap:5px}.pill{padding:5px 8px;background:rgba(255,255,255,.92);box-shadow:none}.levelBox{min-width:120px}
+.worldWrap{width:min(100%,1180px);margin:8px auto 0;padding:0 8px 14px;background:transparent;border-radius:0;box-shadow:none;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.worldWrap::-webkit-scrollbar{display:none}
+.mapTopline{position:sticky;left:0;z-index:18;display:flex;align-items:center;justify-content:space-between;gap:10px;width:min(96vw,980px);margin:0 auto 8px;background:rgba(255,253,247,.95);border:1px solid rgba(255,255,255,.86);border-radius:18px;padding:10px 12px;box-shadow:0 8px 22px rgba(35,74,31,.12)}
+.mapTopline strong{font-size:13px}.mapTopline small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.mapChips{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.mapChip{border:1px solid #dfe8d4;background:#fff;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900}.mapHint{display:none;color:var(--muted);font-size:10px;font-weight:800}
+.world{width:860px;min-width:860px;height:760px;min-height:760px;margin:0 auto;border-radius:26px;overflow:hidden;background:linear-gradient(#a8e6ff 0 22%,#91cf6b 22% 63%,#80b95b 63% 100%);box-shadow:0 16px 42px rgba(31,67,29,.18);transition:width .35s ease,height .35s ease}
+.world.land-east{width:1140px}.world.land-south{height:1040px}
+.world:after{content:'';position:absolute;inset:0;border-radius:26px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.34);pointer-events:none;z-index:30}
+.hill.h1{left:-4%;top:130px;width:44%;height:145px}.hill.h2{right:10px;top:120px;width:48%;height:155px}.path.h{left:34px;right:34px;top:515px;height:42px;transform:none}.path.v{left:568px;top:175px;width:38px;height:455px;transform:none}
+.t2,.t5{display:none}.t1{left:15px;top:250px}.t3{left:810px;top:250px}.t4{left:405px;top:78px}
+.seedDock{left:430px;top:165px;max-width:700px;border-radius:14px;padding:5px;box-shadow:0 6px 18px rgba(35,74,31,.13)}
+.seedMini{min-width:78px;padding:5px 7px;border-radius:11px}.seedMini .em{font-size:20px}
+.zoneTitle{font-size:10px;padding:5px 8px;box-shadow:0 4px 12px rgba(35,74,31,.12)}
+.fieldTitle{left:82px;top:240px}.pastureTitle{left:620px;right:auto;top:240px}
+.fieldZone{left:70px;top:270px;width:500px;grid-template-columns:repeat(4,1fr);gap:9px;padding:10px;border-radius:20px;transform:none;background:rgba(95,153,72,.42);border:2px solid rgba(75,126,59,.35)}
+.plot{min-height:94px;border-radius:15px;box-shadow:inset 0 0 0 2px rgba(74,43,24,.18),0 4px 0 rgba(61,100,46,.34)}
+.pasture{left:610px;right:auto;top:270px;width:220px;height:238px;border-radius:22px;border-width:4px;background:linear-gradient(#94cf70,#80ba5e)}
+.pasturePond{width:62px;height:40px;border-width:4px}
+.building{filter:drop-shadow(0 8px 6px rgba(29,53,26,.14))}.building svg{width:76px;height:76px}.building .label{font-size:9px;padding:4px 7px}
+.house{left:60px;top:72px}.coop{left:620px;right:auto;top:76px}.barn{left:735px;right:auto;top:76px}.mill{left:75px;bottom:82px}.board{left:300px;bottom:82px}
+.quickCard{left:70px;right:auto;bottom:18px;width:760px;grid-template-columns:1.45fr 1fr auto;border-radius:16px;padding:8px 10px;box-shadow:0 7px 20px rgba(35,74,31,.15)}
+.toolbar{width:min(96%,720px);border-radius:18px;padding:6px;box-shadow:0 10px 26px rgba(30,50,27,.18)}.tool{border-radius:12px;padding:7px 3px}.tool span{font-size:19px}.tool.active{background:#4f8f45}
+.sheet{border-radius:20px;box-shadow:0 14px 38px rgba(28,48,26,.22)}
+/* expansion parcels */
+.expansion{position:absolute;z-index:12;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:2px dashed rgba(255,255,255,.7);background:linear-gradient(135deg,rgba(255,255,255,.17),rgba(70,132,59,.22));border-radius:22px;color:#28452a;padding:14px;transition:.25s;overflow:hidden}
+.expansion:before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent 0 15px,rgba(255,255,255,.07) 15px 30px);pointer-events:none}.expansion>*{position:relative;z-index:2}.expansion .lockIcon{font-size:30px}.expansion b{font-size:13px;margin-top:4px}.expansion small{font-size:10px;max-width:190px;line-height:1.35;margin:4px 0 8px}.expandBtn{border:0;background:#fff;color:#365737;border-radius:11px;padding:8px 11px;font-size:10px;font-weight:950;box-shadow:0 4px 12px rgba(35,74,31,.13)}.expandBtn:disabled{opacity:.55}
+.eastExpansion{left:875px;top:245px;width:230px;height:270px}.southExpansion{left:70px;top:775px;width:760px;height:220px}
+.world.land-east .eastExpansion,.world.land-south .southExpansion{display:none}
+.expansionZone{position:absolute;z-index:8;display:none;padding:10px;border-radius:22px;background:rgba(95,153,72,.4);border:2px solid rgba(75,126,59,.34)}
+.world.land-east .eastZone{display:grid}.world.land-south .southZone{display:grid}
+.eastZone{left:885px;top:270px;width:210px;grid-template-columns:repeat(2,1fr);gap:9px}.eastZone .plot{min-height:95px}
+.southZone{left:70px;top:800px;width:500px;grid-template-columns:repeat(4,1fr);gap:9px}.southZone .plot{min-height:95px}
+.eastTitle,.southTitle{display:none}.world.land-east .eastTitle{display:block;left:900px;top:240px}.world.land-south .southTitle{display:block;left:82px;top:770px}
+.landDecor{position:absolute;display:none;z-index:3;background:rgba(255,255,255,.2);border-radius:18px;border:1px solid rgba(255,255,255,.25)}.world.land-east .eastDecor{display:block;left:875px;top:540px;width:230px;height:150px}.world.land-south .southDecor{display:block;left:590px;top:800px;width:240px;height:195px}
+.landDecor span{display:grid;place-items:center;height:100%;font-size:12px;font-weight:900;color:#3c653d;text-align:center;padding:15px}
+@media(max-width:760px){
+  #app{padding:6px 0 94px}.hud{width:96%;align-items:center}.brand{font-size:0}.brand .mark{font-size:20px}.stats{max-width:none;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.stats::-webkit-scrollbar{display:none}.pill{font-size:10px;flex:none}.weatherPill{display:none}.levelBox{min-width:108px}
+  .mapTopline{width:96vw;padding:8px 10px}.mapTopline small{display:none}.mapHint{display:block}.mapChips .mapChip:nth-child(2){display:none}
+  .worldWrap{padding:0 8px 10px}.world{margin:0;width:860px;min-width:860px;height:760px;min-height:760px}.world.land-east{width:1140px}.world.land-south{height:1040px}
+  .seedDock{top:165px;max-width:650px}.fieldZone{left:70px;top:270px;width:500px;grid-template-columns:repeat(4,1fr);gap:9px;padding:10px}.plot{min-height:94px;border-radius:15px}.cropIcon{height:41px;font-size:30px}.cropName{font-size:12px}.tiny{font-size:10px}
+  .pasture{left:610px;top:270px;width:220px;height:238px}.pastureTitle{left:620px;top:240px}.fieldTitle{left:82px;top:240px}
+  .building svg{width:76px;height:76px}.house{left:60px;top:72px}.coop{left:620px;top:76px}.barn{left:735px;top:76px}.mill{left:75px;bottom:82px}.board{left:300px;bottom:82px}
+  .quickCard{left:70px;right:auto;width:760px;grid-template-columns:1.45fr 1fr auto}.quickCard .missionMini{grid-column:auto;grid-row:auto}
+  .toolbar{width:98%;gap:4px;padding:5px}.tool{font-size:9px}.inv{grid-template-columns:repeat(2,1fr)}
+}
+
+</style>
 </head>
 <body>
 <div id="app">
@@ -70,7 +123,11 @@ button:disabled{cursor:not-allowed}
     </div>
   </header>
 
-  <main class="worldWrap">
+  <main class="worldWrap" id="mapViewport">
+    <div class="mapTopline">
+      <div><strong>🌿 Çiftliğim</strong><small>Düzenli bölgeler • ilerledikçe yeni arazi aç</small></div>
+      <div class="mapChips"><span class="mapChip" id="landStatus">1/3 Arazi</span><span class="mapChip">🧭 Haritayı gez</span><span class="mapHint">← kaydır →</span></div>
+    </div>
     <section class="world" id="world"><div class="weatherLayer" id="weatherLayer"></div>
       <div class="sun"></div><div class="cloud"></div><div class="cloud c2"></div>
       <div class="hill h1"></div><div class="hill h2"></div><div class="path h"></div><div class="path v"></div>
@@ -97,6 +154,20 @@ button:disabled{cursor:not-allowed}
       <div class="fieldZone" id="fieldZone"></div>
       <div class="zoneTitle pastureTitle">🐔 Hayvan Alanı</div>
       <div class="pasture" id="pasture"><div class="pasturePond"></div><div id="animalsLayer"></div></div>
+
+      <div class="zoneTitle eastTitle">🌾 Doğu Tarlaları</div>
+      <div class="expansionZone eastZone" id="fieldZoneEast"></div>
+      <div class="expansion eastExpansion" id="eastExpansion">
+        <div class="lockIcon">🔒</div><b>Doğu Arazisi</b><small>4 yeni tarla ve yeni gelişim alanı açar.</small><button class="expandBtn" id="eastExpandBtn" onclick="unlockLand('east')">Araziyi Aç</button>
+      </div>
+      <div class="landDecor eastDecor"><span>🌳 Yeni binalar için boş gelişim alanı</span></div>
+
+      <div class="zoneTitle southTitle">🌱 Güney Tarlaları</div>
+      <div class="expansionZone southZone" id="fieldZoneSouth"></div>
+      <div class="expansion southExpansion" id="southExpansion">
+        <div class="lockIcon">🔒</div><b>Güney Arazisi</b><small>4 yeni tarla ve büyük üretim alanı açar.</small><button class="expandBtn" id="southExpandBtn" onclick="unlockLand('south')">Araziyi Aç</button>
+      </div>
+      <div class="landDecor southDecor"><span>🏗️ İleride mandıra, fırın ve özel yapılar için alan</span></div>
 
       <div class="quickCard">
         <div><div class="quickTitle" id="missionTitle">Günün işi</div><div class="quickText" id="missionText"></div></div>
@@ -171,8 +242,9 @@ const UNLOCKS=[
   {l:6,t:'🌻 Ayçiçeği + Koyun + Kumaş'}
 ];
 function fresh(){return {
-  version:6,coins:100,xp:0,sel:'wheat',
-  plots:Array.from({length:12},(_,i)=>({lock:i>=6,id:null,a:0,z:0})),
+  version:7,coins:100,xp:0,sel:'wheat',
+  plots:Array.from({length:20},(_,i)=>({lock:i>=6,id:null,a:0,z:0})),
+  land:{east:false,south:false},
   inv:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,0])),
   animals:{chicken:{owned:3,readyAt:0},cow:{owned:0,readyAt:0},sheep:{owned:0,readyAt:0}},
   production:{queue:[]},orders:[],rep:0,
@@ -184,9 +256,9 @@ function fresh(){return {
 }}
 function normalize(s){
   const f=fresh();
-  s.version=6;s.inv=s.inv||{};for(const k of Object.keys(ITEMS))if(typeof s.inv[k]!=='number')s.inv[k]=0;
+  s.version=7;s.inv=s.inv||{};for(const k of Object.keys(ITEMS))if(typeof s.inv[k]!=='number')s.inv[k]=0;
   s.animals=s.animals||{};for(const k of ['chicken','cow','sheep'])s.animals[k]=s.animals[k]||structuredClone(f.animals[k]);
-  if(!Array.isArray(s.plots))s.plots=f.plots;while(s.plots.length<12)s.plots.push({lock:true,id:null,a:0,z:0});s.plots=s.plots.slice(0,12);
+  if(!Array.isArray(s.plots))s.plots=f.plots;while(s.plots.length<20)s.plots.push({lock:true,id:null,a:0,z:0});s.plots=s.plots.slice(0,20);s.land=Object.assign({},f.land,s.land||{});
   s.production=s.production||{queue:[]};if(!Array.isArray(s.production.queue))s.production.queue=[];
   s.orders=Array.isArray(s.orders)?s.orders:[];s.upgrades=Object.assign({},f.upgrades,s.upgrades||{});
   s.counters=Object.assign({},f.counters,s.counters||{});s.stats=Object.assign({},f.stats,s.stats||{});
@@ -196,6 +268,7 @@ function normalize(s){
 }
 function migrate(){
   try{
+    const v7=JSON.parse(localStorage.getItem('cv7'));if(v7&&v7.plots)return normalize(v7);
     const v6=JSON.parse(localStorage.getItem('cv6'));if(v6&&v6.plots)return normalize(v6);
     const older=JSON.parse(localStorage.getItem('cv5')||localStorage.getItem('cv4'));
     if(older&&older.plots){
@@ -209,16 +282,20 @@ function migrate(){
   return normalize(fresh())
 }
 let S=migrate(),currentSheet='seeds';
-function save(){S.lastSeen=Date.now();localStorage.setItem('cv6',JSON.stringify(S))}
+function save(){S.lastSeen=Date.now();localStorage.setItem('cv7',JSON.stringify(S))}
 function level(state=S){return 1+Math.floor((state.xp||0)/XP_PER_LEVEL)}
-function unlockedPlots(){return Math.min(12,6+Math.floor((level()-1)/2)*2)}
+function coreUnlockedPlots(){return Math.min(12,6+Math.floor((level()-1)/2)*2)}
+function plotUnlocked(i){if(i<12)return i<coreUnlockedPlots();if(i<16)return !!S.land.east;return !!S.land.south}
 function crop(id){return CROPS.find(c=>c.id===id)}
 function itemValue(k){return VALUES[k]||10}
 function weather(){return WEATHER.find(w=>w.id===S.weather.id)||WEATHER[0]}
 function inventoryUsed(){return Object.values(S.inv).reduce((a,b)=>a+(Number(b)||0),0)}
 function storageCap(){return 36+(S.upgrades.silo-1)*18}
 function canStore(q=1){return inventoryUsed()+q<=storageCap()}
-function syncLocks(){const n=unlockedPlots();S.plots.forEach((p,i)=>p.lock=i>=n)}
+function syncLocks(){S.plots.forEach((p,i)=>p.lock=!plotUnlocked(i))}
+const LAND={east:{level:3,cost:350,label:'Doğu Arazisi'},south:{level:5,cost:650,label:'Güney Arazisi'}};
+function unlockLand(zone){const c=LAND[zone];if(!c||S.land[zone])return;if(zone==='south'&&!S.land.east)return toast('Önce Doğu Arazisini aç.');if(level()<c.level)return toast('Seviye '+c.level+' gerekli.');if(S.coins<c.cost)return toast(c.cost+' 🪙 gerekli.');S.coins-=c.cost;S.land[zone]=true;syncLocks();save();render();haptic();setTimeout(()=>{const v=document.getElementById('mapViewport');if(zone==='east')v.scrollTo({left:340,behavior:'smooth'});else v.scrollTo({top:520,behavior:'smooth'})},100);toast(c.label+' açıldı 🌿')}
+function renderLand(){const w=document.getElementById('world');w.classList.toggle('land-east',!!S.land.east);w.classList.toggle('land-south',!!S.land.south);const opened=1+(S.land.east?1:0)+(S.land.south?1:0);document.getElementById('landStatus').textContent=opened+'/3 Arazi';for(const z of ['east','south']){const b=document.getElementById(z+'ExpandBtn'),c=LAND[z];if(!b)continue;const prereq=z==='south'&&!S.land.east;const lvl=level()<c.level;b.disabled=prereq||lvl;b.textContent=prereq?'Önce Doğu':lvl?'🔒 Seviye '+c.level:c.cost+' 🪙 ile Aç'}}
 function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('on');clearTimeout(window._toast);window._toast=setTimeout(()=>x.classList.remove('on'),1750)}
 function haptic(){if(navigator.vibrate)navigator.vibrate(18)}
 function reqText(req){return Object.entries(req).map(([k,v])=>(ITEMS[k]?.[0]||'📦')+' '+v+' '+(ITEMS[k]?.[1]||k)).join(' + ')}
@@ -297,7 +374,9 @@ function renderHud(){
 }
 function renderWeather(){const w=weather(),world=document.getElementById('world');document.getElementById('weather').textContent=w.e+' '+w.n;world.classList.toggle('rainy',w.id==='rain');world.classList.toggle('breezy',w.id==='breeze');document.getElementById('weatherLayer').className='weatherLayer '+(w.id==='rain'?'rain':'')}
 function renderSeedDock(){const d=document.getElementById('seedDock');d.innerHTML='';CROPS.forEach(c=>{const b=document.createElement('button');b.className='seedMini'+(S.sel===c.id?' sel':'');b.disabled=level()<c.l;b.innerHTML='<span class="em">'+c.e+'</span>'+c.n;b.onclick=()=>{S.sel=c.id;save();renderSeedDock();renderField();toast(c.n+' seçildi')};d.appendChild(b)})}
-function renderField(){syncLocks();const z=document.getElementById('fieldZone');z.innerHTML='';S.plots.forEach((p,i)=>{const b=document.createElement('button');b.className='plot'+(p.lock?' lock':'')+(!p.id?' empty':'');if(p.lock)b.innerHTML='<div class="cropIcon">🔒</div><div class="tiny">Kilitli</div>';else if(!p.id)b.innerHTML='<div class="cropIcon">🌱</div><div class="cropName">Boş Tarla</div><div class="tiny">'+crop(S.sel).n+' ek</div>';else{const c=crop(p.id),now=Date.now(),ready=now>=p.z,pct=Math.max(0,Math.min(100,(now-p.a)/(p.z-p.a)*100)),stage=pct<34?'stage1':pct<72?'stage2':'';if(ready)b.classList.add('ready');b.innerHTML='<div class="cropIcon '+stage+'">'+stageIcon(c,pct,ready)+'</div><div class="cropName">'+c.n+'</div><div class="tiny">'+(ready?'Hasada hazır':Math.ceil((p.z-now)/1000)+' sn')+'</div><div class="progress"><i style="width:'+pct+'%"></i></div>'}b.onclick=()=>plantOrHarvest(i);z.appendChild(b)})}
+function plotButton(p,i){const b=document.createElement('button');b.className='plot'+(p.lock?' lock':'')+(!p.id?' empty':'');if(p.lock)b.innerHTML='<div class="cropIcon">🔒</div><div class="tiny">Kilitli</div>';else if(!p.id)b.innerHTML='<div class="cropIcon">🌱</div><div class="cropName">Boş Tarla</div><div class="tiny">'+crop(S.sel).n+' ek</div>';else{const c=crop(p.id),now=Date.now(),ready=now>=p.z,pct=Math.max(0,Math.min(100,(now-p.a)/(p.z-p.a)*100)),stage=pct<34?'stage1':pct<72?'stage2':'';if(ready)b.classList.add('ready');b.innerHTML='<div class="cropIcon '+stage+'">'+stageIcon(c,pct,ready)+'</div><div class="cropName">'+c.n+'</div><div class="tiny">'+(ready?'Hasada hazır':Math.ceil((p.z-now)/1000)+' sn')+'</div><div class="progress"><i style="width:'+pct+'%"></i></div>'}b.onclick=()=>plantOrHarvest(i);return b}
+function renderField(){syncLocks();const zones=[['fieldZone',0,12],['fieldZoneEast',12,16],['fieldZoneSouth',16,20]];zones.forEach(([id,a,b])=>{const z=document.getElementById(id);if(!z)return;z.innerHTML='';for(let i=a;i<b;i++)z.appendChild(plotButton(S.plots[i],i))})}
+
 function chickenSVG(){return `<svg viewBox="0 0 64 56"><ellipse cx="33" cy="33" rx="19" ry="14" fill="#fff4e0"/><circle cx="22" cy="20" r="11" fill="#fff4e0"/><circle cx="25" cy="20" r="2.1" fill="#263427"/><polygon points="11,21 4,24 11,27" fill="#e59a36"/><polygon points="19,8 23,3 27,8 31,4 35,10 28,13 21,13" fill="#d84c3f"/><path d="M48 27c7-4 11-1 12 4-6 0-9 2-12 6z" fill="#e8c578"/><line x1="30" y1="46" x2="28" y2="55" stroke="#d79b3c" stroke-width="3"/><line x1="38" y1="46" x2="40" y2="55" stroke="#d79b3c" stroke-width="3"/></svg>`}
 function cowSVG(){return `<svg viewBox="0 0 68 58"><ellipse cx="35" cy="31" rx="22" ry="15" fill="#fbf7ef"/><ellipse cx="19" cy="23" rx="11" ry="10" fill="#fbf7ef"/><ellipse cx="16" cy="27" rx="7" ry="5.5" fill="#f2c3bf"/><ellipse cx="31" cy="22" rx="4" ry="5" fill="#2b2b2b"/><ellipse cx="41" cy="29" rx="6" ry="5" fill="#2b2b2b"/><circle cx="17" cy="23" r="1.8" fill="#1c1c1c"/><path d="M10 17l-4-5M25 15l4-6" stroke="#99724e" stroke-width="3"/><line x1="28" y1="46" x2="27" y2="56" stroke="#6e563d" stroke-width="4"/><line x1="39" y1="46" x2="39" y2="56" stroke="#6e563d" stroke-width="4"/></svg>`}
 function sheepSVG(){return `<svg viewBox="0 0 68 58"><g fill="#fffdf7"><circle cx="34" cy="31" r="17"/><circle cx="24" cy="29" r="12"/><circle cx="45" cy="28" r="12"/><circle cx="39" cy="39" r="11"/></g><ellipse cx="17" cy="28" rx="9" ry="8" fill="#73553e"/><circle cx="15" cy="26" r="1.6" fill="#111"/><line x1="28" y1="45" x2="27" y2="56" stroke="#73553e" stroke-width="4"/><line x1="43" y1="45" x2="44" y2="56" stroke="#73553e" stroke-width="4"/></svg>`}
@@ -325,7 +404,7 @@ function renderProduction(body){
   const cards=document.createElement('div');cards.className='cards';Object.entries(RECIPES).forEach(([k,r])=>{const locked=level()<r.level,d=document.createElement('div');d.className='card';d.innerHTML='<div class="recipe"><div class="lhs"><h4>'+r.emoji+' '+r.name+'</h4><div class="sub">'+reqText(r.req)+' → '+r.qty+' '+ITEMS[r.out][1]+' • '+r.time+' sn</div></div><button class="btn" '+(locked||S.production.queue.length>=S.upgrades.factorySlots?'disabled':'')+' onclick="startProduction(\''+k+'\')">'+(locked?'🔒 Sv.'+r.level:'Üret')+'</button></div>';cards.appendChild(d)});body.appendChild(cards)
 }
 function renderFarm(body){
-  const daily=60+level()*10,claimed=S.dailyClaim===todayKey();body.innerHTML='<div class="statusGrid"><div class="statusCard"><span>🏅 İtibar</span><b>'+S.rep+'</b><small>'+repTitle()+'</small></div><div class="statusCard"><span>🎒 Depo</span><b>'+inventoryUsed()+'/'+storageCap()+'</b><small>Seviye '+S.upgrades.silo+'</small></div><div class="statusCard"><span>⚙️ Üretim</span><b>'+S.upgrades.factorySlots+' sıra</b><small>Atölye kapasitesi</small></div></div>'+
+  const daily=60+level()*10,claimed=S.dailyClaim===todayKey();body.innerHTML='<div class="statusGrid"><div class="statusCard"><span>🏅 İtibar</span><b>'+S.rep+'</b><small>'+repTitle()+'</small></div><div class="statusCard"><span>🎒 Depo</span><b>'+inventoryUsed()+'/'+storageCap()+'</b><small>Seviye '+S.upgrades.silo+'</small></div><div class="statusCard"><span>⚙️ Üretim</span><b>'+S.upgrades.factorySlots+' sıra</b><small>Atölye kapasitesi</small></div><div class="statusCard"><span>🗺️ Arazi</span><b>'+(1+(S.land.east?1:0)+(S.land.south?1:0))+'/3</b><small>Genişleme ilerlemesi</small></div></div>'+
   '<div class="card dailyCard"><div><h4>🎁 Günlük Çiftlik Hediyesi</h4><div class="sub">Bugün '+daily+' 🪙</div></div><button class="btn" '+(claimed?'disabled':'')+' onclick="claimDaily()">'+(claimed?'Alındı ✅':'Hediyeyi Al')+'</button></div>'+
   '<h4 class="sectionLabel">Çiftliği Geliştir</h4><div class="cards">'+
   '<div class="card"><h4>🏚️ Depoyu Büyüt</h4><div class="sub">Kapasite +18. Bir sonraki: '+(150*S.upgrades.silo)+' 🪙</div><button class="btn" onclick="upgradeSilo()">Yükselt</button></div>'+
@@ -345,7 +424,7 @@ function renderSheet(){
 }
 function openSheet(which){currentSheet=which;renderSheet();document.getElementById('sheet').classList.add('open');document.querySelectorAll('.tool').forEach(x=>x.classList.toggle('active',x.dataset.sheet===which))}
 function closeSheet(){document.getElementById('sheet').classList.remove('open')}
-function render(){ensureOrders();renderHud();renderSeedDock();renderField();renderAnimals();renderMission();renderSheet()}
+function render(){ensureOrders();renderHud();renderLand();renderSeedDock();renderField();renderAnimals();renderMission();renderSheet()}
 function offlineHello(){const gap=Date.now()-(S.lastSeen||Date.now());if(gap>45000)setTimeout(()=>toast('Tekrar hoş geldin 🌾 Tarlalarını kontrol et.'),500)}
 syncLocks();ensureOrders();offlineHello();save();render();setTimeout(wander,250);setInterval(wander,2900);setInterval(()=>{tickWeather();renderField();renderAnimals();renderMission();if(document.getElementById('sheet').classList.contains('open')&&['animals','factory','orders'].includes(currentSheet))renderSheet()},1000);
 
