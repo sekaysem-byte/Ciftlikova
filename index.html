@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
 <meta name="theme-color" content="#0b2e27" />
-<title>Anadolu Tycoon — Oynanabilir V1</title>
+<title>Anadolu Tycoon — Oynanabilir V1.1</title>
 <style>
 :root{--gold:#ffc941;--glass:rgba(5,39,43,.92);--glass2:rgba(8,52,55,.94);--line:rgba(255,255,255,.18);--green:#43d05b;--text:#fff;--muted:#c9dbd8}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071e1a;color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none}
@@ -14,6 +14,7 @@
 .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;-webkit-user-drag:none}
 .hotspot{position:absolute;border:2px solid transparent;border-radius:18px;z-index:12;cursor:pointer;transition:.15s ease;background:transparent}.hotspot:hover{border-color:rgba(255,213,58,.8);box-shadow:0 0 24px rgba(255,201,65,.35)}
 .hotspot.active{border-color:#ffd43b;box-shadow:0 0 0 5px rgba(255,212,59,.15),0 0 38px rgba(255,201,65,.8);animation:pulse 1.15s ease-in-out infinite alternate}
+.plotStatus{position:absolute;z-index:25;min-width:108px;transform:translateX(-50%);padding:7px 9px;border-radius:13px;background:rgba(5,42,38,.92);border:1px solid rgba(255,255,255,.22);box-shadow:0 7px 18px #0006;text-align:center;font-size:13px;font-weight:900;pointer-events:none}.plotStatus small{display:block;color:#d9ebe6;font-size:10px;margin-top:2px;font-weight:700}.plotStatus.ready{background:rgba(116,76,8,.95);border-color:#ffd65b;animation:pulse 1s ease-in-out infinite alternate}.claimQuest{border:0;border-radius:9px;background:linear-gradient(#ffd76a,#e7ad2f);color:#253018;font-weight:950;padding:6px 8px;cursor:pointer}.claimQuest.claimed{background:#ffffff16;color:#c8dad5}
 @keyframes pulse{to{filter:brightness(1.15);box-shadow:0 0 0 10px rgba(255,212,59,.05),0 0 48px rgba(255,201,65,.95)}}
 .hint{position:absolute;z-index:24;background:#fff8dc;color:#1e2a23;border:2px solid #f0c14a;border-radius:15px;padding:10px 13px;min-width:175px;max-width:260px;box-shadow:0 9px 22px #0005;font-weight:800;pointer-events:none}.hint small{display:block;font-weight:600;color:#4d554f;margin-top:3px}.hint .num{position:absolute;left:-16px;top:-15px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#ff6b00;color:#fff;border:3px solid #fff;font-size:20px}.hint:after{content:"";position:absolute;bottom:-12px;left:44%;border:12px solid transparent;border-top-color:#fff8dc;border-bottom:0}
 .dynamicHud{position:absolute;z-index:30;left:470px;top:12px;display:flex;gap:9px;pointer-events:none}.hudChip{height:48px;min-width:135px;padding:0 16px;display:flex;align-items:center;gap:9px;border-radius:16px;background:linear-gradient(180deg,rgba(4,51,57,.98),rgba(1,29,33,.98));border:1px solid rgba(255,255,255,.23);box-shadow:0 7px 12px #0005;font-weight:900;font-size:20px}.hudChip.coin{min-width:170px}.hudChip.storage{min-width:165px}.hudChip .emoji{font-size:25px}.hudChip b{margin-left:auto}.hudChip .plus{margin-left:3px;background:#27b84a;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;font-size:22px}
@@ -41,7 +42,12 @@
       <div class="questPanel"><div class="panelTitle"><span>GÖREVLER</span><span class="subtle">Seviye <b id="level">1</b></span></div><div id="quests"></div></div>
       <div class="orderPanel"><div class="panelTitle"><span>AKTİF SİPARİŞLER</span><span class="subtle" id="orderCount"></span></div><div id="orders"></div></div>
 
-      <button class="hotspot" id="hsField" aria-label="Tarla" style="left:160px;top:555px;width:485px;height:230px"></button>
+      <button class="hotspot" id="hsField0" aria-label="Tarla 1" style="left:165px;top:575px;width:150px;height:170px"></button>
+      <button class="hotspot" id="hsField1" aria-label="Tarla 2" style="left:315px;top:565px;width:150px;height:175px"></button>
+      <button class="hotspot" id="hsField2" aria-label="Tarla 3" style="left:465px;top:555px;width:155px;height:180px"></button>
+      <div class="plotStatus" id="plotStatus0" style="left:240px;top:545px">🌱 Tarla 1<small>Boş</small></div>
+      <div class="plotStatus" id="plotStatus1" style="left:390px;top:535px">🌱 Tarla 2<small>Boş</small></div>
+      <div class="plotStatus" id="plotStatus2" style="left:540px;top:525px">🌱 Tarla 3<small>Boş</small></div>
       <button class="hotspot" id="hsCoop" aria-label="Kümes" style="left:208px;top:405px;width:365px;height:160px"></button>
       <button class="hotspot" id="hsMill" aria-label="Değirmen" style="left:650px;top:245px;width:250px;height:285px"></button>
       <button class="hotspot" id="hsBakery" aria-label="Fırın" style="left:965px;top:365px;width:300px;height:210px"></button>
@@ -79,9 +85,9 @@ const crops={
   tomato:{name:'Domates',icon:'🍅',cost:45,seconds:12,yield:3,sell:49}
 };
 const itemMeta={wheat:['Buğday','🌾',18],corn:['Mısır','🌽',29],tomato:['Domates','🍅',49],flour:['Un','🥣',78],bread:['Ekmek','🥖',190],egg:['Yumurta','🥚',36]};
-const fresh=()=>({money:5000,diamond:5,level:1,xp:0,capLevel:1,land:false,inv:{wheat:10,corn:5,tomato:3,flour:0,bread:0,egg:0},field:{crop:null,readyAt:0},mill:{readyAt:0,pending:0},bakery:{readyAt:0,pending:0},eggReadyAt:Date.now()+8000,stats:{planted:0,harvest:0,eggs:0,orders:0,milled:0,baked:0},orders:[],onboard:0,merchantUntil:Date.now()+120000});
+const fresh=()=>({money:5000,diamond:5,level:1,xp:0,capLevel:1,land:false,inv:{wheat:10,corn:5,tomato:3,flour:0,bread:0,egg:0},fields:[{crop:null,readyAt:0},{crop:null,readyAt:0},{crop:null,readyAt:0}],mill:{readyAt:0,pending:0},bakery:{readyAt:0,pending:0},eggReadyAt:Date.now()+8000,stats:{planted:0,harvest:0,eggs:0,orders:0,milled:0,baked:0},orders:[],onboard:0,merchantUntil:Date.now()+120000,questClaims:{}});
 let state;try{state=Object.assign(fresh(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch{state=fresh()}
-state.inv=Object.assign(fresh().inv,state.inv||{});state.stats=Object.assign(fresh().stats,state.stats||{});state.field=Object.assign(fresh().field,state.field||{});state.mill=Object.assign(fresh().mill,state.mill||{});state.bakery=Object.assign(fresh().bakery,state.bakery||{});
+state.inv=Object.assign(fresh().inv,state.inv||{});state.stats=Object.assign(fresh().stats,state.stats||{});if(!Array.isArray(state.fields)){const old=state.field||{crop:null,readyAt:0};state.fields=[old,{crop:null,readyAt:0},{crop:null,readyAt:0}]}state.fields=state.fields.slice(0,3).map(f=>Object.assign({crop:null,readyAt:0},f||{}));while(state.fields.length<3)state.fields.push({crop:null,readyAt:0});state.questClaims=Object.assign({},state.questClaims||{});state.mill=Object.assign(fresh().mill,state.mill||{});state.bakery=Object.assign(fresh().bakery,state.bakery||{});
 const $=id=>document.getElementById(id);const caps=[100,250,600,1500,4000];
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
 const used=()=>Object.values(state.inv).reduce((a,b)=>a+(+b||0),0); const cap=()=>caps[state.capLevel-1];
@@ -91,13 +97,14 @@ function fmt(n){return Number(n).toLocaleString('tr-TR')}
 function openModal(title,desc,body){$('modalTitle').textContent=title;$('modalDesc').textContent=desc||'';$('modalBody').innerHTML=body;$('modalBack').classList.add('open')}
 function closeModal(){$('modalBack').classList.remove('open')}
 $('closeModal').onclick=closeModal;$('modalBack').onclick=e=>{if(e.target===$('modalBack'))closeModal()};
-function plantModal(){
-  if(state.field.crop){const rem=state.field.readyAt-Date.now();if(rem<=0)return harvest();return toast('⏳ '+crops[state.field.crop].name+' büyüyor: '+Math.ceil(rem/1000)+' sn')}
-  openModal('🌱 Tarlaya ne ekelim?','Kısa üretim süreleriyle aktif oynanış.',`<div class="grid">${Object.entries(crops).map(([k,c])=>`<button class="choice" data-plant="${k}"><span class="ci">${c.icon}</span><b>${c.name}</b><small>${c.seconds} sn · ${c.cost} ₺</small></button>`).join('')}</div>`);
-  document.querySelectorAll('[data-plant]').forEach(b=>b.onclick=()=>plant(b.dataset.plant));
+function fieldsModal(){
+  openModal('🌾 Tarlalar','Üç tarlayı aynı anda yönet. Biri büyürken diğerine ekim yapabilirsin.',`<div class="grid">${state.fields.map((f,i)=>{const rem=f.readyAt-Date.now();const title=!f.crop?'Boş tarla':rem<=0?'Hasada hazır':crops[f.crop].name+' büyüyor';const icon=!f.crop?'🌱':crops[f.crop].icon;const sub=!f.crop?'Ekim yap':rem<=0?'Dokun ve hasat et':Math.ceil(rem/1000)+' sn';return `<button class="choice" data-field="${i}"><span class="ci">${icon}</span><b>Tarla ${i+1}</b><small>${title} · ${sub}</small></button>`}).join('')}</div>`);
+  document.querySelectorAll('[data-field]').forEach(x=>x.onclick=()=>fieldAction(+x.dataset.field));
 }
-function plant(k){const c=crops[k];if(state.money<c.cost)return toast('💰 Para yetersiz');state.money-=c.cost;state.field={crop:k,readyAt:Date.now()+c.seconds*1000};state.stats.planted++;state.onboard=Math.max(state.onboard,1);addXp(4);save();closeModal();render();toast(c.icon+' '+c.name+' ekildi')}
-function harvest(){const k=state.field.crop;if(!k)return plantModal();if(Date.now()<state.field.readyAt)return;const c=crops[k];if(used()+c.yield>cap())return toast('📦 Depo dolu');state.inv[k]+=c.yield;state.field={crop:null,readyAt:0};state.stats.harvest++;state.onboard=Math.max(state.onboard,2);addXp(12);save();render();toast('✅ '+c.yield+' '+c.name+' hasat edildi')}
+function fieldAction(i){const f=state.fields[i];if(!f)return;if(f.crop){const rem=f.readyAt-Date.now();if(rem<=0)return harvest(i);return toast('⏳ '+crops[f.crop].name+' büyüyor: '+Math.ceil(rem/1000)+' sn')}plantModal(i)}
+function plantModal(i=0){openModal('🌱 Tarla '+(i+1)+' — ne ekelim?','Aynı anda üç tarlayı yönetebilirsin.',`<div class="grid">${Object.entries(crops).map(([k,c])=>`<button class="choice" data-plant="${k}"><span class="ci">${c.icon}</span><b>${c.name}</b><small>${c.seconds} sn · ${c.cost} ₺</small></button>`).join('')}</div>`);document.querySelectorAll('[data-plant]').forEach(x=>x.onclick=()=>plant(x.dataset.plant,i))}
+function plant(k,i){const c=crops[k];if(state.money<c.cost)return toast('💰 Para yetersiz');state.money-=c.cost;state.fields[i]={crop:k,readyAt:Date.now()+c.seconds*1000};state.stats.planted++;state.onboard=Math.max(state.onboard,1);addXp(4);save();closeModal();render();toast(c.icon+' Tarla '+(i+1)+' için '+c.name+' ekildi')}
+function harvest(i){const f=state.fields[i],k=f&&f.crop;if(!k)return fieldAction(i);if(Date.now()<f.readyAt)return;const c=crops[k];if(used()+c.yield>cap())return toast('📦 Depo dolu');state.inv[k]+=c.yield;state.fields[i]={crop:null,readyAt:0};state.stats.harvest++;state.onboard=Math.max(state.onboard,2);addXp(12);save();render();toast('✅ Tarla '+(i+1)+': '+c.yield+' '+c.name+' hasat edildi')}
 function coop(){if(Date.now()<state.eggReadyAt)return toast('🐔 Yumurtalar '+Math.ceil((state.eggReadyAt-Date.now())/1000)+' sn sonra hazır');if(used()+3>cap())return toast('📦 Depo dolu');state.inv.egg+=3;state.stats.eggs+=3;state.eggReadyAt=Date.now()+12000;state.onboard=Math.max(state.onboard,3);addXp(8);save();render();toast('🥚 3 yumurta toplandı')}
 function mill(){if(state.mill.readyAt>Date.now())return toast('🏭 Değirmen çalışıyor');if(state.inv.wheat<3)return toast('🌾 3 buğday gerekiyor');state.inv.wheat-=3;state.mill={readyAt:Date.now()+6000,pending:2};state.onboard=Math.max(state.onboard,4);save();render();toast('🏭 Un üretimi başladı')}
 function bakery(){if(state.bakery.readyAt>Date.now())return toast('🥖 Fırın çalışıyor');if(state.inv.flour<2)return toast('🥣 2 un gerekiyor');state.inv.flour-=2;state.bakery={readyAt:Date.now()+8000,pending:1};save();render();toast('🔥 Ekmek pişmeye başladı')}
@@ -111,16 +118,17 @@ function canOrder(o){return Object.entries(o.need).every(([k,v])=>(state.inv[k]|
 function deliver(id){const i=state.orders.findIndex(o=>String(o.id)===String(id));if(i<0)return;const o=state.orders[i];if(!canOrder(o))return toast('📦 Sipariş için ürün eksik');Object.entries(o.need).forEach(([k,v])=>state.inv[k]-=v);state.money+=o.reward;state.stats.orders++;addXp(35);state.orders.splice(i,1);ensureOrders();save();render();toast('🚚 Sipariş teslim edildi · +'+o.reward+' ₺')}
 function merchant(){if(state.inv.wheat<8)return toast('🌾 Teklif için 8 buğday gerekiyor');state.inv.wheat-=8;state.money+=202;addXp(8);save();render();toast('🧔🏻 Tüccar aldı · +202 ₺')}
 function quests(){return [
- {i:'🌾',t:'3 buğday ek',v:Math.min(state.stats.planted,3),m:3,r:200},
- {i:'🌾',t:'1 hasat yap',v:Math.min(state.stats.harvest,1),m:1,r:300},
- {i:'🥚',t:'1 yumurta topla',v:Math.min(state.stats.eggs,1),m:1,r:200},
- {i:'📦',t:'İlk siparişi tamamla',v:Math.min(state.stats.orders,1),m:1,r:500}
+ {id:'plant3',i:'🌾',t:'3 ürün ek',v:Math.min(state.stats.planted,3),m:3,r:200},
+ {id:'harvest1',i:'🌾',t:'1 hasat yap',v:Math.min(state.stats.harvest,1),m:1,r:300},
+ {id:'egg1',i:'🥚',t:'1 yumurta topla',v:Math.min(state.stats.eggs,1),m:1,r:200},
+ {id:'order1',i:'📦',t:'İlk siparişi tamamla',v:Math.min(state.stats.orders,1),m:1,r:500}
 ]}
+function claimQuest(id){const q=quests().find(x=>x.id===id);if(!q||q.v<q.m||state.questClaims[id])return;state.questClaims[id]=true;state.money+=q.r;addXp(20);save();render();toast('🎯 Görev ödülü: +'+q.r+' ₺')}
 function render(){
  ensureOrders();$('money').textContent=fmt(state.money)+' ₺';$('diamond').textContent=state.diamond;$('storage').textContent=used()+'/'+cap();$('level').textContent=state.level;
- $('quests').innerHTML=quests().map(q=>`<div class="quest ${q.v>=q.m?'done':''}"><div class="ico">${q.v>=q.m?'✅':q.i}</div><div><b>${q.t}</b><div class="bar"><i style="width:${q.v/q.m*100}%"></i></div></div><div class="reward">🪙 ${q.r}</div></div>`).join('');
+ $('quests').innerHTML=quests().map(q=>`<div class="quest ${q.v>=q.m?'done':''}"><div class="ico">${q.v>=q.m?'✅':q.i}</div><div><b>${q.t}</b><div class="bar"><i style="width:${q.v/q.m*100}%"></i></div></div>${q.v>=q.m?<button class="claimQuest ${state.questClaims[q.id]?'claimed':''}" data-claim="${q.id}" ${state.questClaims[q.id]?'disabled':''}>${state.questClaims[q.id]?'Alındı':'+'+q.r+' ₺'}</button>:`<div class="reward">🪙 ${q.r}</div>`}</div>`).join('');document.querySelectorAll('[data-claim]').forEach(x=>x.onclick=()=>claimQuest(x.dataset.claim));
  $('orderCount').textContent='Yeni ('+state.orders.length+')';$('orders').innerHTML=state.orders.map(o=>`<div class="order"><div class="orderTop"><div class="avatar">${o.face}</div><div><div class="orderName">${o.name}</div><div class="orderNeed">${Object.entries(o.need).map(([k,v])=>itemMeta[k][1]+' '+v+' '+itemMeta[k][0]).join(' + ')}</div></div><div class="reward" style="margin-left:auto">🪙 ${o.reward}</div></div><div class="orderFoot"><span class="subtle">Hemen teslim</span><button class="accept" data-order="${o.id}" ${canOrder(o)?'':'disabled'}>Teslim Et</button></div></div>`).join('');document.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>deliver(b.dataset.order));
- const rem=state.field.readyAt-Date.now();const hs=$('hsField');hs.classList.toggle('active',state.onboard===0 || (state.field.crop&&rem<=0));$('onboardingHint').style.display=state.onboard===0?'block':'none';
+ state.fields.forEach((f,i)=>{const rem=f.readyAt-Date.now(),hs=$('hsField'+i),ps=$('plotStatus'+i);hs.classList.toggle('active',(state.onboard===0&&i===0)||(f.crop&&rem<=0));const ready=f.crop&&rem<=0;ps.classList.toggle('ready',!!ready);ps.innerHTML=f.crop?`${crops[f.crop].icon} Tarla ${i+1}<small>${ready?'HASADA HAZIR':Math.ceil(rem/1000)+' sn'}</small>`:`🌱 Tarla ${i+1}<small>Boş · ekim yap</small>`});$('onboardingHint').style.display=state.onboard===0?'block':'none';
  $('hsCoop').classList.toggle('active',state.onboard>=2&&state.onboard<3&&Date.now()>=state.eggReadyAt);$('hsMill').classList.toggle('active',state.onboard>=3&&state.onboard<4);
  const mr=state.mill.readyAt-Date.now();$('millTimer').classList.toggle('show',mr>0);if(mr>0)$('millTime').textContent='00:'+String(Math.ceil(mr/1000)).padStart(2,'0');
  const br=state.bakery.readyAt-Date.now();$('bakeryTimer').classList.toggle('show',br>0);if(br>0)$('bakeryTime').textContent='00:'+String(Math.ceil(br/1000)).padStart(2,'0');
@@ -128,8 +136,8 @@ function render(){
  save();
 }
 function tick(){const n=Date.now();let changed=false;if(state.mill.pending&&state.mill.readyAt&&n>=state.mill.readyAt){if(used()+state.mill.pending<=cap()){state.inv.flour+=state.mill.pending;state.stats.milled+=state.mill.pending;toast('🥣 2 un hazır')}state.mill={readyAt:0,pending:0};changed=true}if(state.bakery.pending&&state.bakery.readyAt&&n>=state.bakery.readyAt){if(used()+state.bakery.pending<=cap()){state.inv.bread+=state.bakery.pending;state.stats.baked+=state.bakery.pending;toast('🥖 Ekmek hazır')}state.bakery={readyAt:0,pending:0};changed=true}if(changed)save();render()}
-$('hsField').onclick=plantModal;$('hsCoop').onclick=coop;$('hsMill').onclick=mill;$('hsBakery').onclick=bakery;$('hsDepot').onclick=storageModal;$('hsMarket').onclick=marketModal;$('merchantBtn').onclick=merchant;
-document.querySelectorAll('.menuBtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.menuBtn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');const m=b.dataset.menu;if(m==='field')plantModal();if(m==='animals')coop();if(m==='production')mill();if(m==='storage')storageModal();if(m==='vehicles')toast('🚚 Araç filosu bir sonraki aşamada');if(m==='buildings')toast('🏠 Bina geliştirme yakında');if(m==='land')landModal();if(m==='decor')toast('🌳 Süsleme sistemi yakında')});
+$('hsField0').onclick=()=>fieldAction(0);$('hsField1').onclick=()=>fieldAction(1);$('hsField2').onclick=()=>fieldAction(2);$('hsCoop').onclick=coop;$('hsMill').onclick=mill;$('hsBakery').onclick=bakery;$('hsDepot').onclick=storageModal;$('hsMarket').onclick=marketModal;$('merchantBtn').onclick=merchant;
+document.querySelectorAll('.menuBtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.menuBtn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');const m=b.dataset.menu;if(m==='field')fieldsModal();if(m==='animals')coop();if(m==='production')mill();if(m==='storage')storageModal();if(m==='vehicles')toast('🚚 Araç filosu bir sonraki aşamada');if(m==='buildings')toast('🏠 Bina geliştirme yakında');if(m==='land')landModal();if(m==='decor')toast('🌳 Süsleme sistemi yakında')});
 // pan / zoom stage
 const vp=$('stageViewport'),stage=$('stage');let scale=1,tx=0,ty=0,drag=false,lx=0,ly=0;
 function fit(){const w=innerWidth,h=innerHeight;scale=Math.min(w/1672,h/941);if(innerWidth<900&&innerWidth>innerHeight)scale=Math.max(scale,.52);tx=(w-1672*scale)/2;ty=(h-941*scale)/2;apply()}
