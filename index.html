@@ -160,7 +160,7 @@ vp.addEventListener('pointerdown',e=>{if(e.target.closest('.hotspot,.accept,.men
 vp.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2){const a=[...pts.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);if(pinchDist)zoom((d-pinchDist)/650);pinchDist=d;return}if(!drag)return;tx+=e.clientX-lx;ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;apply()});
 function endPtr(e){pts.delete(e.pointerId);pinchDist=0;drag=false;vp.classList.remove('dragging')}
 vp.addEventListener('pointerup',endPtr);vp.addEventListener('pointercancel',endPtr);
-addEventListener('resize',fit);fit();render();setInterval(tick,500);setTimeout(()=>toast('🌾 Tarlaya dokun ve oyunu başlat!'),700);
+addEventListener('resize',fit);if(window.visualViewport)visualViewport.addEventListener('resize',fit);fit();render();setInterval(tick,500);setTimeout(()=>toast('🌾 Tarlaya dokun ve oyunu başlat!'),700);
 })();
 </script>
 </body></html>
