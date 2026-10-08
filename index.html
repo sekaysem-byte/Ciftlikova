@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
 <meta name="theme-color" content="#0b2e27" />
-<title>Anadolu Tycoon — Oynanabilir V1.3</title>
+<title>Anadolu Tycoon — Oynanabilir V1.4</title>
 <style>
 :root{--gold:#ffc941;--glass:rgba(5,39,43,.92);--glass2:rgba(8,52,55,.94);--line:rgba(255,255,255,.18);--green:#43d05b;--text:#fff;--muted:#c9dbd8}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071e1a;color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none}
@@ -26,6 +26,14 @@
 .modalBack{position:fixed;z-index:200;inset:0;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}.modalBack.open{display:flex}.modal{width:min(560px,96vw);max-height:82vh;overflow:auto;background:linear-gradient(180deg,#0b4947,#062f31);border:1px solid #ffffff29;border-radius:22px;box-shadow:0 24px 70px #000b;padding:18px}.modalHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.modal h2{margin:0 0 4px;font-size:22px}.modal p{margin:0 0 14px;color:var(--muted);font-size:14px}.close{border:0;background:#ffffff15;color:#fff;width:38px;height:38px;border-radius:11px;font-size:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.choice{border:1px solid #ffffff20;border-radius:15px;background:#ffffff0b;color:#fff;padding:13px 9px;cursor:pointer;text-align:center}.choice .ci{display:block;font-size:37px;margin-bottom:4px}.choice b{display:block}.choice small{color:#c3d6d3}.choice:disabled{opacity:.42}.wideBtn{width:100%;border:0;border-radius:12px;background:linear-gradient(#ffd861,#eeb52f);color:#253018;font-weight:1000;padding:12px 14px;margin-top:10px}.inventory{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.inv{background:#ffffff0b;border:1px solid #ffffff15;border-radius:12px;padding:10px;text-align:center}.inv .ii{font-size:29px}.inv b{display:block;font-size:19px}.subtle{font-size:12px;color:#bad0cc}.timerFloating{position:absolute;z-index:23;background:rgba(248,246,230,.97);color:#18231c;border-radius:13px;padding:7px 12px;font-weight:900;border:2px solid #e1be52;box-shadow:0 6px 15px #0005;display:none}.timerFloating.show{display:block}.timerFloating small{display:block;color:#444;font-weight:700;text-align:center}
 .rotate{display:none;position:fixed;z-index:500;inset:0;background:#061f1b;color:#fff;align-items:center;justify-content:center;text-align:center;padding:30px}.rotate .box{max-width:330px}.rotate .phone{font-size:60px;animation:rot 1.6s ease-in-out infinite alternate}@keyframes rot{to{transform:rotate(90deg)}}
 @media(max-width:800px) and (orientation:portrait){.rotate{display:none}}
+.mobileControls{display:none}
+.buildBadge{position:fixed;right:8px;top:max(8px,env(safe-area-inset-top));z-index:190;background:#052e2de8;border:1px solid #ffffff22;color:#d8eeea;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900;pointer-events:none}
+@media(max-width:900px){
+  .mobileControls{position:fixed;left:8px;right:8px;bottom:max(7px,env(safe-area-inset-bottom));z-index:180;display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:6px;background:rgba(3,35,35,.96);border:1px solid rgba(255,255,255,.2);border-radius:16px;box-shadow:0 8px 24px #0008;backdrop-filter:blur(8px)}
+  .mobileControls button{min-width:0;height:54px;border:1px solid rgba(255,255,255,.14);border-radius:11px;background:linear-gradient(180deg,#155448,#092f2d);color:#fff;font-weight:900;font-size:10px;padding:3px;touch-action:manipulation}
+  .mobileControls button span{display:block;font-size:21px;line-height:22px;margin-bottom:2px}
+  .zoomTools{bottom:76px}
+}
 </style>
 </head>
 <body>
@@ -356,7 +364,7 @@ document.querySelectorAll('.menuBtn').forEach(b=>b.onclick=()=>{
 // Reliable pan/zoom
 const vp=$('stageViewport'),stage=$('stage');
 let scale=1,tx=0,ty=0,drag=false,lx=0,ly=0;
-const MIN_SCALE=.06,MAX_SCALE=.85;
+const MIN_SCALE=.04,MAX_SCALE=.85;
 function fit(){
   const w=vp.clientWidth||window.innerWidth,h=vp.clientHeight||window.innerHeight;
   const base=Math.min(w/1672,h/941);
@@ -389,6 +397,27 @@ vp.addEventListener('pointerup',endDrag);vp.addEventListener('pointercancel',end
 window.addEventListener('resize',()=>setTimeout(fit,60));
 window.addEventListener('orientationchange',()=>setTimeout(fit,180));
 
+function installMobileControls(){
+  if(document.getElementById('mobileControls'))return;
+  const bar=document.createElement('div');bar.id='mobileControls';bar.className='mobileControls';
+  bar.innerHTML='<button data-ma="field"><span>🌾</span>Tarla</button><button data-ma="animals"><span>🐔</span>Hayvan</button><button data-ma="production"><span>🏭</span>Üretim</button><button data-ma="storage"><span>📦</span>Depo</button><button data-ma="market"><span>🛒</span>Pazar</button><button data-ma="land"><span>🗺️</span>Arazi</button>';
+  document.getElementById('app').appendChild(bar);
+  bar.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('pointerdown',e=>e.stopPropagation());
+    btn.addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      const a=btn.dataset.ma;
+      if(a==='field')fieldsModal();
+      else if(a==='animals')coop();
+      else if(a==='production')mill();
+      else if(a==='storage')storageModal();
+      else if(a==='market')marketModal();
+      else if(a==='land')landModal();
+    });
+  });
+  const badge=document.createElement('div');badge.className='buildBadge';badge.textContent='V1.4';document.getElementById('app').appendChild(badge);
+}
+installMobileControls();
 fit();render();setInterval(tick,500);
 setTimeout(()=>toast('🌾 Tarlaya dokun ve oyunu başlat!'),700);
 })();
